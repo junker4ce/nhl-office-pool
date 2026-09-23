@@ -1,0 +1,65 @@
+{
+  "name": "nhl-api-client",
+  "version": "2.0.0",
+  "description": "Comprehensive TypeScript client for both NHL APIs (Web API + Stats API) - standings, scores, players, teams, games, NHL Edge analytics, and more",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jakubsvobodacz/nhl-api-client.git"
+  },
+  "keywords": [
+    "nhl",
+    "hockey",
+    "stats",
+    "api",
+    "client",
+    "typescript",
+    "nhl-edge",
+    "standings",
+    "scores",
+    "players"
+  ],
+  "author": "Jakub Svoboda",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jakubsvobodacz/nhl-api-client/issues"
+  },
+  "homepage": "https://github.com/jakubsvobodacz/nhl-api-client#readme",
+  "dependencies": {
+    "axios": "^1.7.9"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

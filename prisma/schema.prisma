@@ -1,0 +1,212 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  ENTRANT
+}
+
+enum SeasonStatus {
+  DRAFT
+  OPEN
+  LOCKED
+  COMPLETED
+}
+
+enum SyncStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model User {
+  id             String        @id @default(cuid())
+  email          String        @unique
+  passwordHash   String
+  displayName    String
+  teamName       String?       @db.VarChar(80)
+  teamLogoData   String?       @db.Text
+  role           UserRole      @default(ENTRANT)
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  administered   Pool[]
+  poolEntrants   PoolEntrant[]
+  picks          EntrantPick[]
+  scoreLedgers   ScoreLedger[]
+  auditLogs      AuditLog[]
+}
+
+model Season {
+  id          String        @id @default(cuid())
+  label       String
+  startDate   DateTime
+  endDate     DateTime
+  status      SeasonStatus  @default(DRAFT)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  pools       Pool[]
+}
+
+model Pool {
+  id               String                @id @default(cuid())
+  name             String
+  seasonId         String                @unique
+  entrantLimit     Int?
+  boxCount         Int
+  isLocked         Boolean               @default(false)
+  lockAt           DateTime?
+  createdByUserId  String
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  season           Season                @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  createdBy        User                  @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
+  entrants         PoolEntrant[]
+  boxes            PoolBox[]
+  boxOptions       PoolBoxPlayerOption[]
+  syncLogs         NhlSyncLog[]
+}
+
+model PoolEntrant {
+  id          String        @id @default(cuid())
+  poolId       String
+  userId       String
+  createdAt    DateTime      @default(now())
+  pool         Pool          @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  picks        EntrantPick[]
+  scoreLedgers ScoreLedger[]
+
+  @@unique([poolId, userId])
+}
+
+model PoolBox {
+  id            String                @id @default(cuid())
+  poolId        String
+  boxOrder      Int
+  title         String
+  description   String?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  pool          Pool                  @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  playerOptions PoolBoxPlayerOption[]
+  picks         EntrantPick[]
+
+  @@unique([poolId, boxOrder])
+}
+
+model PoolBoxPlayerOption {
+  id         String   @id @default(cuid())
+  poolId     String
+  poolBoxId  String
+  playerId   String
+  createdAt  DateTime @default(now())
+  pool       Pool     @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  poolBox    PoolBox  @relation(fields: [poolBoxId], references: [id], onDelete: Cascade)
+  player     Player   @relation(fields: [playerId], references: [id], onDelete: Restrict)
+  picks      EntrantPick[]
+
+  @@unique([poolId, playerId])
+  @@unique([poolBoxId, playerId])
+}
+
+model Team {
+  id           String   @id @default(cuid())
+  nhlId        Int      @unique
+  abbreviation String   @unique
+  name         String
+  logoUrl      String?
+  primaryColorHex   String?
+  secondaryColorHex String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  players      Player[]
+}
+
+model Player {
+  id            String                @id @default(cuid())
+  nhlId         Int                   @unique
+  teamId        String?
+  firstName     String
+  lastName      String
+  position      String
+  headshotUrl   String?
+  active        Boolean               @default(true)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  team          Team?                 @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  boxOptions    PoolBoxPlayerOption[]
+  dailyStats    DailyPlayerStat[]
+}
+
+model EntrantPick {
+  id                String              @id @default(cuid())
+  poolEntrantId     String
+  poolBoxId         String
+  playerOptionId    String
+  pickedAt          DateTime            @default(now())
+  poolEntrant       PoolEntrant         @relation(fields: [poolEntrantId], references: [id], onDelete: Cascade)
+  poolBox           PoolBox             @relation(fields: [poolBoxId], references: [id], onDelete: Cascade)
+  playerOption      PoolBoxPlayerOption @relation(fields: [playerOptionId], references: [id], onDelete: Restrict)
+  user              User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId            String?
+
+  @@unique([poolEntrantId, poolBoxId])
+}
+
+model DailyPlayerStat {
+  id            String   @id @default(cuid())
+  gameId        Int
+  statDate      DateTime
+  playerId      String
+  goals         Int      @default(0)
+  assists       Int      @default(0)
+  goalieWin     Int      @default(0)
+  goalieShutout Int      @default(0)
+  createdAt     DateTime @default(now())
+  player        Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, playerId])
+}
+
+model ScoreLedger {
+  id            String      @id @default(cuid())
+  poolEntrantId String
+  userId        String
+  statDate      DateTime
+  points        Int
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  poolEntrant   PoolEntrant @relation(fields: [poolEntrantId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([poolEntrantId, statDate])
+}
+
+model NhlSyncLog {
+  id             String     @id @default(cuid())
+  poolId         String?
+  syncType       String
+  status         SyncStatus @default(PENDING)
+  startedAt      DateTime   @default(now())
+  completedAt    DateTime?
+  recordsUpserted Int       @default(0)
+  errorMessage   String?
+  pool           Pool?      @relation(fields: [poolId], references: [id], onDelete: SetNull)
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?
+  action      String
+  entityType  String
+  entityId    String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  actor       User?    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+}
