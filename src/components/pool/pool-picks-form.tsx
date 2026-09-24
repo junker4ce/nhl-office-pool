@@ -170,6 +170,23 @@ export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLo
         </CardContent>
       </Card>
 
+      <Card className="border-cyan-300/20 bg-slate-900/85">
+        <CardHeader>
+          <CardTitle className="text-slate-100">How scoring works</CardTitle>
+          <CardDescription className="text-slate-300">
+            Each player you pick earns points for your entry based on their real NHL stats:
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-sm text-slate-200">
+          <ul className="list-disc space-y-1 pl-5">
+            <li>Goal - 1 point</li>
+            <li>Assist - 1 point</li>
+            <li>Goalie win - 2 points</li>
+            <li>Goalie shutout - 3 points</li>
+          </ul>
+        </CardContent>
+      </Card>
+
       {pool.boxes.map((box) => (
         <Card key={box.id} className="border-cyan-300/20 bg-slate-900/85">
           <CardHeader>
