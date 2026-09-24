@@ -12,32 +12,6 @@ export function SignupForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [logoError, setLogoError] = useState<string | null>(null);
-
-  async function readLogo(file: File | undefined) {
-    setLogoError(null);
-
-    if (!file) {
-      return "";
-    }
-
-    if (!file.type.startsWith("image/") || !["image/png", "image/jpeg", "image/webp", "image/gif"].includes(file.type)) {
-      setLogoError("Choose a PNG, JPG, WEBP, or GIF image.");
-      return null;
-    }
-
-    if (file.size > 512 * 1024) {
-      setLogoError("Logo must be smaller than 512 KB.");
-      return null;
-    }
-
-    return new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = () => reject(new Error("Unable to read logo."));
-      reader.readAsDataURL(file);
-    });
-  }
 
   async function onSubmit(formData: FormData) {
     setError(null);
@@ -50,18 +24,12 @@ export function SignupForm() {
       password: String(formData.get("password") ?? ""),
     };
 
-    const teamLogoData = await readLogo(formData.get("teamLogo") as File | undefined).catch(() => null);
-    if (teamLogoData === null) {
-      setIsSubmitting(false);
-      return;
-    }
-
     const signupRes = await fetch("/api/auth/signup", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ ...payload, teamLogoData }),
+      body: JSON.stringify(payload),
     });
 
     if (!signupRes.ok) {
@@ -111,15 +79,10 @@ export function SignupForm() {
             <Input id="teamName" name="teamName" required minLength={2} maxLength={80} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="teamLogo">Team logo</Label>
-            <Input id="teamLogo" name="teamLogo" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
-            <p className="text-xs text-slate-400">Optional. PNG, JPG, WEBP, or GIF up to 512 KB.</p>
-          </div>
-          <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input id="password" name="password" type="password" minLength={8} required />
           </div>
-          {(error || logoError) && <p className="text-sm text-rose-300">{error ?? logoError}</p>}
+          {error && <p className="text-sm text-rose-300">{error}</p>}
           <Button type="submit" className="w-full bg-cyan-400 text-slate-950 hover:bg-cyan-300" disabled={isSubmitting}>
             {isSubmitting ? "Creating account..." : "Create account"}
           </Button>

@@ -9,12 +9,6 @@ const signupSchema = z.object({
   password: z.string().min(8),
   displayName: z.string().min(2).max(80),
   teamName: z.string().trim().min(2).max(80),
-  teamLogoData: z
-    .string()
-    .refine((value) => /^data:image\/(png|jpeg|webp|gif);base64,/.test(value), "Logo must be a supported image.")
-    .refine((value) => value.length <= 700_000, "Logo must be smaller than 512 KB.")
-    .optional()
-    .or(z.literal("")),
 });
 
 export async function POST(request: Request) {
@@ -42,7 +36,6 @@ export async function POST(request: Request) {
         passwordHash,
         displayName: parsed.data.displayName.trim(),
         teamName: parsed.data.teamName,
-        teamLogoData: parsed.data.teamLogoData || null,
         role: userCount === 0 ? UserRole.ADMIN : UserRole.ENTRANT,
       },
       select: {
