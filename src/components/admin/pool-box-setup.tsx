@@ -65,6 +65,8 @@ export function PoolBoxSetup({ pools }: Props) {
   const [creatingBox, setCreatingBox] = useState(false);
   const [savingPlayer, setSavingPlayer] = useState(false);
   const [playerForm, setPlayerForm] = useState(emptyPlayerForm);
+  const [assignBoxByPlayer, setAssignBoxByPlayer] = useState<Record<string, string>>({});
+  const [addingPlayerId, setAddingPlayerId] = useState<string | null>(null);
 
   const selectedPool = useMemo(
     () => pools.find((pool) => pool.id === selectedPoolId) ?? null,
@@ -176,6 +178,7 @@ export function PoolBoxSetup({ pools }: Props) {
     if (!selectedPoolId) return;
 
     setMessage(null);
+    setAddingPlayerId(playerId);
 
     const response = await fetch(`/api/admin/pools/${selectedPoolId}/boxes/${boxId}/options`, {
       method: "POST",
@@ -186,6 +189,7 @@ export function PoolBoxSetup({ pools }: Props) {
     if (!response.ok) {
       const data = (await response.json().catch(() => null)) as { error?: string } | null;
       setMessage(data?.error ?? "Could not add player option.");
+      setAddingPlayerId(null);
       return;
     }
 
@@ -195,7 +199,9 @@ export function PoolBoxSetup({ pools }: Props) {
       setPoolData(data.pool);
     }
 
-    setMessage("Player option added.");
+    const box = poolData?.boxes.find((candidate) => candidate.id === boxId);
+    setMessage(box ? `Added to "${box.title}".` : "Player option added.");
+    setAddingPlayerId(null);
   }
 
   async function deleteOption(boxId: string, optionId: string) {
@@ -320,24 +326,62 @@ export function PoolBoxSetup({ pools }: Props) {
             />
             <p className="text-xs text-slate-300">
               Searches players already saved in this app database. If no results appear, add players below first.
+              Pick a box next to a result and add them straight from here.
             </p>
-            <div className="max-h-56 space-y-2 overflow-y-auto pr-1 text-sm text-slate-200">
+            <div className="max-h-80 space-y-2 overflow-y-auto pr-1 text-sm text-slate-200">
               {!searchQuery.trim() && <p>Type a player name to search.</p>}
               {searchLoading && <p>Searching players...</p>}
               {searchError && <p className="text-rose-200">{searchError}</p>}
               {!searchLoading && !searchError && searchQuery.trim() && availableSearchResults.length === 0 && (
                 <p>No available players match this search.</p>
               )}
-              {availableSearchResults.map((player) => (
-                <div key={player.id} className="rounded-md border border-slate-700/70 bg-slate-900/50 p-2">
-                  <p className="font-medium text-slate-100">
-                    {player.firstName} {player.lastName}
-                  </p>
-                  <p className="text-xs text-slate-300">
-                    {player.position} {player.team ? `- ${player.team.abbreviation}` : ""}
-                  </p>
-                </div>
-              ))}
+              {!poolData?.boxes.length && searchQuery.trim() && availableSearchResults.length > 0 && (
+                <p className="text-xs text-amber-200">Create a box below before assigning players.</p>
+              )}
+              {availableSearchResults.map((player) => {
+                const selectedBoxId = assignBoxByPlayer[player.id] ?? poolData?.boxes[0]?.id ?? "";
+                return (
+                  <div
+                    key={player.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-slate-700/70 bg-slate-900/50 p-2"
+                  >
+                    <div>
+                      <p className="font-medium text-slate-100">
+                        {player.firstName} {player.lastName}
+                      </p>
+                      <p className="text-xs text-slate-300">
+                        {player.position} {player.team ? `- ${player.team.abbreviation}` : ""}
+                      </p>
+                    </div>
+                    {poolData?.boxes.length ? (
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={selectedBoxId}
+                          onChange={(event) =>
+                            setAssignBoxByPlayer((prev) => ({ ...prev, [player.id]: event.target.value }))
+                          }
+                          className="h-8 rounded-md border border-slate-700 bg-slate-950 px-2 text-xs text-slate-100"
+                        >
+                          {poolData.boxes.map((box) => (
+                            <option key={box.id} value={box.id}>
+                              #{box.boxOrder} {box.title}
+                            </option>
+                          ))}
+                        </select>
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={!selectedBoxId || addingPlayerId === player.id}
+                          onClick={() => void addOption(selectedBoxId, player.id)}
+                          className="bg-cyan-400 text-slate-950 hover:bg-cyan-300"
+                        >
+                          {addingPlayerId === player.id ? "Adding..." : "Add"}
+                        </Button>
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -436,23 +480,6 @@ export function PoolBoxSetup({ pools }: Props) {
                       </Button>
                     </div>
                   ))}
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-xs text-slate-300">Add option from current search results:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {availableSearchResults.slice(0, 10).map((player) => (
-                      <Button
-                        key={`${box.id}-${player.id}`}
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => void addOption(box.id, player.id)}
-                      >
-                        + {player.firstName} {player.lastName}
-                      </Button>
-                    ))}
-                  </div>
                 </div>
               </div>
             ))}
