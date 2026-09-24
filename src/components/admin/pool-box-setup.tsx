@@ -65,7 +65,7 @@ export function PoolBoxSetup({ pools }: Props) {
   const [creatingBox, setCreatingBox] = useState(false);
   const [savingPlayer, setSavingPlayer] = useState(false);
   const [playerForm, setPlayerForm] = useState(emptyPlayerForm);
-  const [assignBoxByPlayer, setAssignBoxByPlayer] = useState<Record<string, string>>({});
+  const [activeBoxId, setActiveBoxId] = useState<string>("");
   const [addingPlayerId, setAddingPlayerId] = useState<string | null>(null);
 
   const selectedPool = useMemo(
@@ -111,6 +111,13 @@ export function PoolBoxSetup({ pools }: Props) {
 
     void loadBoxes();
   }, [selectedPoolId]);
+
+  useEffect(() => {
+    setActiveBoxId((prev) => {
+      if (prev && poolData?.boxes.some((box) => box.id === prev)) return prev;
+      return poolData?.boxes[0]?.id ?? "";
+    });
+  }, [poolData]);
 
   async function createBox(formData: FormData) {
     if (!selectedPoolId) return;
@@ -326,8 +333,31 @@ export function PoolBoxSetup({ pools }: Props) {
             />
             <p className="text-xs text-slate-300">
               Searches players already saved in this app database. If no results appear, add players below first.
-              Pick a box next to a result and add them straight from here.
             </p>
+
+            {poolData?.boxes.length ? (
+              <div className="space-y-1">
+                <Label htmlFor="activeBoxId" className="text-xs">Add to box</Label>
+                <select
+                  id="activeBoxId"
+                  value={activeBoxId}
+                  onChange={(event) => setActiveBoxId(event.target.value)}
+                  className="h-8 w-full rounded-md border border-slate-700 bg-slate-950 px-2 text-sm text-slate-100"
+                >
+                  {poolData.boxes.map((box) => (
+                    <option key={box.id} value={box.id}>
+                      #{box.boxOrder} {box.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              searchQuery.trim() &&
+              availableSearchResults.length > 0 && (
+                <p className="text-xs text-amber-200">Create a box below before assigning players.</p>
+              )
+            )}
+
             <div className="max-h-80 space-y-2 overflow-y-auto pr-1 text-sm text-slate-200">
               {!searchQuery.trim() && <p>Type a player name to search.</p>}
               {searchLoading && <p>Searching players...</p>}
@@ -335,53 +365,32 @@ export function PoolBoxSetup({ pools }: Props) {
               {!searchLoading && !searchError && searchQuery.trim() && availableSearchResults.length === 0 && (
                 <p>No available players match this search.</p>
               )}
-              {!poolData?.boxes.length && searchQuery.trim() && availableSearchResults.length > 0 && (
-                <p className="text-xs text-amber-200">Create a box below before assigning players.</p>
-              )}
-              {availableSearchResults.map((player) => {
-                const selectedBoxId = assignBoxByPlayer[player.id] ?? poolData?.boxes[0]?.id ?? "";
-                return (
-                  <div
-                    key={player.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-slate-700/70 bg-slate-900/50 p-2"
-                  >
-                    <div>
-                      <p className="font-medium text-slate-100">
-                        {player.firstName} {player.lastName}
-                      </p>
-                      <p className="text-xs text-slate-300">
-                        {player.position} {player.team ? `- ${player.team.abbreviation}` : ""}
-                      </p>
-                    </div>
-                    {poolData?.boxes.length ? (
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={selectedBoxId}
-                          onChange={(event) =>
-                            setAssignBoxByPlayer((prev) => ({ ...prev, [player.id]: event.target.value }))
-                          }
-                          className="h-8 rounded-md border border-slate-700 bg-slate-950 px-2 text-xs text-slate-100"
-                        >
-                          {poolData.boxes.map((box) => (
-                            <option key={box.id} value={box.id}>
-                              #{box.boxOrder} {box.title}
-                            </option>
-                          ))}
-                        </select>
-                        <Button
-                          type="button"
-                          size="sm"
-                          disabled={!selectedBoxId || addingPlayerId === player.id}
-                          onClick={() => void addOption(selectedBoxId, player.id)}
-                          className="bg-cyan-400 text-slate-950 hover:bg-cyan-300"
-                        >
-                          {addingPlayerId === player.id ? "Adding..." : "Add"}
-                        </Button>
-                      </div>
-                    ) : null}
+              {availableSearchResults.map((player) => (
+                <div
+                  key={player.id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-slate-700/70 bg-slate-900/50 p-2"
+                >
+                  <div>
+                    <p className="font-medium text-slate-100">
+                      {player.firstName} {player.lastName}
+                    </p>
+                    <p className="text-xs text-slate-300">
+                      {player.position} {player.team ? `- ${player.team.abbreviation}` : ""}
+                    </p>
                   </div>
-                );
-              })}
+                  {poolData?.boxes.length ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={!activeBoxId || addingPlayerId === player.id}
+                      onClick={() => void addOption(activeBoxId, player.id)}
+                      className="bg-cyan-400 text-slate-950 hover:bg-cyan-300"
+                    >
+                      {addingPlayerId === player.id ? "Adding..." : "Add"}
+                    </Button>
+                  ) : null}
+                </div>
+              ))}
             </div>
           </div>
 
