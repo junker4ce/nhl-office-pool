@@ -20,10 +20,10 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <section className="mx-auto grid w-full max-w-6xl gap-8 px-6 py-10 md:grid-cols-[240px_1fr] md:px-10">
-      <aside className="rounded-2xl border border-cyan-300/20 bg-slate-900/80 p-4">
-        <h2 className="font-heading text-3xl uppercase text-cyan-100">Admin</h2>
-        <nav className="mt-4 space-y-2 text-sm text-slate-200">
-          <Link className="block rounded-md px-3 py-2 hover:bg-slate-800" href="/admin">
+      <aside className="rounded-2xl border border-brand/20 bg-card p-4">
+        <h2 className="font-heading text-3xl uppercase text-brand">Admin</h2>
+        <nav className="mt-4 space-y-2 text-sm text-foreground">
+          <Link className="block rounded-md px-3 py-2 hover:bg-muted" href="/admin">
             Overview
           </Link>
         </nav>

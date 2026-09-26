@@ -12,13 +12,13 @@ export default async function Home() {
     <section className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-16 md:px-10">
       <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-7">
-          <span className="inline-flex rounded-full border border-cyan-300/25 bg-cyan-500/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">
+          <span className="inline-flex rounded-full border border-brand/25 bg-brand/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-brand">
             2026 Season MVP
           </span>
-          <h1 className="font-heading text-6xl uppercase leading-[0.9] text-cyan-100 md:text-8xl">
+          <h1 className="font-heading text-6xl uppercase leading-[0.9] text-brand md:text-8xl">
             NHL Office Pool
           </h1>
-          <p className="max-w-xl text-lg text-slate-200/90">
+          <p className="max-w-xl text-lg text-foreground/90">
             Run a full-season player box pool with account sign-up, admin management,
             and automatic scoring from public NHL APIs.
           </p>
@@ -29,7 +29,7 @@ export default async function Home() {
                   href="/auth/signup"
                   className={cn(
                     buttonVariants(),
-                    "bg-cyan-400 text-slate-950 hover:bg-cyan-300",
+                    "bg-brand text-brand-foreground hover:bg-brand/90",
                   )}
                 >
                   Create account
@@ -38,7 +38,7 @@ export default async function Home() {
                   href="/auth/login"
                   className={cn(
                     buttonVariants({ variant: "outline" }),
-                    "border-cyan-300/40 text-cyan-100 hover:bg-cyan-500/15",
+                    "border-brand/40 text-brand hover:bg-brand/15",
                   )}
                 >
                   Log in
@@ -51,7 +51,7 @@ export default async function Home() {
                   href="/pools"
                   className={cn(
                     buttonVariants(),
-                    "bg-cyan-400 text-slate-950 hover:bg-cyan-300",
+                    "bg-brand text-brand-foreground hover:bg-brand/90",
                   )}
                 >
                   Open office pool
@@ -60,7 +60,7 @@ export default async function Home() {
                   href="/dashboard"
                   className={cn(
                     buttonVariants({ variant: "outline" }),
-                    "border-cyan-300/40 text-cyan-100 hover:bg-cyan-500/15",
+                    "border-brand/40 text-brand hover:bg-brand/15",
                   )}
                 >
                   My dashboard

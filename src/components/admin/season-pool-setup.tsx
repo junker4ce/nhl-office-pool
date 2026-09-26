@@ -104,10 +104,10 @@ export function SeasonPoolSetup({ seasons, pools }: Props) {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <Card className="border-cyan-300/20 bg-slate-900/85">
+      <Card className="border-brand/20 bg-card">
         <CardHeader>
-          <CardTitle className="text-slate-100">Create season</CardTitle>
-          <CardDescription className="text-slate-300">
+          <CardTitle>Create season</CardTitle>
+          <CardDescription>
             Define the season window before pool setup.
           </CardDescription>
         </CardHeader>
@@ -125,17 +125,17 @@ export function SeasonPoolSetup({ seasons, pools }: Props) {
               <Label htmlFor="endDate">End date</Label>
               <Input id="endDate" name="endDate" type="datetime-local" required />
             </div>
-            <Button type="submit" disabled={seasonLoading} className="bg-cyan-400 text-slate-950 hover:bg-cyan-300">
+            <Button type="submit" disabled={seasonLoading} className="bg-brand text-brand-foreground hover:bg-brand/90">
               {seasonLoading ? "Creating season..." : "Create season"}
             </Button>
           </form>
         </CardContent>
       </Card>
 
-      <Card className="border-cyan-300/20 bg-slate-900/85">
+      <Card className="border-brand/20 bg-card">
         <CardHeader>
-          <CardTitle className="text-slate-100">Create pool</CardTitle>
-          <CardDescription className="text-slate-300">
+          <CardTitle>Create pool</CardTitle>
+          <CardDescription>
             One pool per season in MVP.
           </CardDescription>
         </CardHeader>
@@ -150,7 +150,7 @@ export function SeasonPoolSetup({ seasons, pools }: Props) {
               <select
                 id="seasonId"
                 name="seasonId"
-                className="h-8 w-full rounded-md border border-slate-700 bg-slate-950 px-2 text-sm text-slate-100"
+                className="h-8 w-full rounded-md border border-border bg-background px-2 text-sm text-foreground"
                 required
               >
                 <option value="">Select a season</option>
@@ -173,31 +173,31 @@ export function SeasonPoolSetup({ seasons, pools }: Props) {
               <Label htmlFor="lockAt">Lock at (optional)</Label>
               <Input id="lockAt" name="lockAt" type="datetime-local" />
             </div>
-            <Button type="submit" disabled={poolLoading || availableSeasons.length === 0} className="bg-cyan-400 text-slate-950 hover:bg-cyan-300">
+            <Button type="submit" disabled={poolLoading || availableSeasons.length === 0} className="bg-brand text-brand-foreground hover:bg-brand/90">
               {poolLoading ? "Creating pool..." : "Create pool"}
             </Button>
           </form>
         </CardContent>
       </Card>
 
-      <Card className="border-cyan-300/20 bg-slate-900/85 lg:col-span-2">
+      <Card className="border-brand/20 bg-card lg:col-span-2">
         <CardHeader>
-          <CardTitle className="text-slate-100">Current setup</CardTitle>
-          <CardDescription className="text-slate-300">
+          <CardTitle>Current setup</CardTitle>
+          <CardDescription>
             Seasons and pools currently configured.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm text-slate-200">
+        <CardContent className="space-y-3 text-sm text-foreground">
           {poolState.length === 0 && <p>No pools yet.</p>}
           {poolState.map((pool) => (
-            <div key={pool.id} className="rounded-md border border-slate-700/70 bg-slate-950/50 p-3">
-              <p className="font-semibold text-slate-100">{pool.name}</p>
+            <div key={pool.id} className="rounded-md border border-border bg-muted/40 p-3">
+              <p className="font-semibold text-foreground">{pool.name}</p>
               <p>Season: {pool.season.label}</p>
               <p>Boxes: {pool.boxCount}</p>
               <p>Status: {pool.isLocked ? "Locked" : "Open"}</p>
             </div>
           ))}
-          {message && <p className="text-cyan-100">{message}</p>}
+          {message && <p className="text-brand">{message}</p>}
         </CardContent>
       </Card>
     </div>

@@ -58,13 +58,13 @@ export function SyncPlayersButton() {
   return (
     <div className="space-y-2">
       <Button
-        className="bg-cyan-400 text-slate-950 hover:bg-cyan-300"
+        className="bg-brand text-brand-foreground hover:bg-brand/90"
         onClick={handleSync}
         disabled={isLoading}
       >
         {isLoading ? "Syncing players..." : "Sync NHL players"}
       </Button>
-      {message && <p className="text-xs text-slate-300">{message}</p>}
+      {message && <p className="text-xs text-muted-foreground">{message}</p>}
     </div>
   );
 }

@@ -137,21 +137,21 @@ export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLo
 
   return (
     <div className="space-y-5">
-      <Card className="border-cyan-300/20 bg-slate-900/85">
+      <Card className="border-brand/20 bg-card">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-slate-100">{pool.name}</CardTitle>
-              <CardDescription className="text-slate-300">
+              <CardTitle>{pool.name}</CardTitle>
+              <CardDescription>
                 {pool.season.label} - one player per box
               </CardDescription>
             </div>
-            <Badge className={locked ? "bg-rose-500/20 text-rose-100" : "bg-cyan-500/20 text-cyan-100"}>
+            <Badge className={locked ? "bg-destructive/15 text-destructive" : "bg-brand/15 text-brand"}>
               {locked ? "Locked" : "Open"}
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm text-slate-200">
+        <CardContent className="space-y-3 text-sm text-foreground">
           <p>
             Progress: {completedCount} / {pool.boxes.length} boxes selected
           </p>
@@ -160,24 +160,24 @@ export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLo
               type="button"
               onClick={() => void joinPool()}
               disabled={joinLoading}
-              className="bg-cyan-400 text-slate-950 hover:bg-cyan-300"
+              className="bg-brand text-brand-foreground hover:bg-brand/90"
             >
               {joinLoading ? "Joining..." : "Join this pool"}
             </Button>
           )}
           {!entrant && locked && <p>Pool is locked and can no longer be joined.</p>}
-          {message && <p className="text-cyan-100">{message}</p>}
+          {message && <p className="text-brand">{message}</p>}
         </CardContent>
       </Card>
 
-      <Card className="border-cyan-300/20 bg-slate-900/85">
+      <Card className="border-brand/20 bg-card">
         <CardHeader>
-          <CardTitle className="text-slate-100">How scoring works</CardTitle>
-          <CardDescription className="text-slate-300">
+          <CardTitle>How scoring works</CardTitle>
+          <CardDescription>
             Each player you pick earns points for your entry based on their real NHL stats:
           </CardDescription>
         </CardHeader>
-        <CardContent className="text-sm text-slate-200">
+        <CardContent className="text-sm text-foreground">
           <ul className="list-disc space-y-1 pl-5">
             <li>Goal - 1 point</li>
             <li>Assist - 1 point</li>
@@ -188,16 +188,16 @@ export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLo
       </Card>
 
       {pool.boxes.map((box) => (
-        <Card key={box.id} className="border-cyan-300/20 bg-slate-900/85">
+        <Card key={box.id} className="border-brand/20 bg-card">
           <CardHeader>
-            <CardTitle className="text-slate-100">
+            <CardTitle>
               Box {box.boxOrder}: {box.title}
             </CardTitle>
-            {box.description && <CardDescription className="text-slate-300">{box.description}</CardDescription>}
+            {box.description && <CardDescription>{box.description}</CardDescription>}
           </CardHeader>
           <CardContent className="space-y-2">
             {box.playerOptions.length === 0 && (
-              <p className="text-sm text-slate-300">No player options configured yet.</p>
+              <p className="text-sm text-muted-foreground">No player options configured yet.</p>
             )}
 
             <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
@@ -210,14 +210,14 @@ export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLo
                 return (
                   <label
                     key={option.id}
-                    className={`relative flex h-full cursor-pointer overflow-hidden rounded-md border p-3 text-sm text-slate-100 transition ${
+                    className={`relative flex h-full cursor-pointer overflow-hidden rounded-md border p-3 text-sm text-foreground transition ${
                       isSelected
-                        ? "border-cyan-300/90 bg-cyan-500/10 ring-2 ring-cyan-300/70"
-                        : "border-slate-700/80 bg-slate-950/50 hover:border-cyan-300/40"
-                    } focus-within:ring-2 focus-within:ring-cyan-300/80`}
+                        ? "border-brand/90 bg-brand/10 ring-2 ring-brand/70"
+                        : "border-border bg-muted/40 hover:border-brand/40"
+                    } focus-within:ring-2 focus-within:ring-brand/80`}
                   >
                     {isSelected && (
-                      <span className="absolute right-2 top-2 z-20 rounded-full border border-cyan-200/70 bg-cyan-300/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-cyan-100">
+                      <span className="absolute right-2 top-2 z-20 rounded-full border border-brand/70 bg-brand/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand">
                         Picked
                       </span>
                     )}
@@ -247,8 +247,8 @@ export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLo
                         aria-hidden
                         className={`h-4 w-4 rounded-full border transition ${
                           isSelected
-                            ? "border-cyan-200 bg-cyan-300"
-                            : "border-slate-400/80 bg-transparent"
+                            ? "border-brand bg-brand"
+                            : "border-muted-foreground/60 bg-transparent"
                         }`}
                       />
 
@@ -256,16 +256,16 @@ export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLo
                         <img
                           src={option.player.headshotUrl}
                           alt={`${option.player.firstName} ${option.player.lastName} headshot`}
-                          className="h-14 w-14 rounded-full border border-slate-700 bg-slate-900 object-cover"
+                          className="h-14 w-14 rounded-full border border-border bg-muted object-cover"
                         />
                       ) : (
-                        <div className="flex h-14 w-14 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-[10px] font-semibold text-slate-200">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-full border border-border bg-muted text-[10px] font-semibold text-foreground">
                           {initials || "NHL"}
                         </div>
                       )}
 
                       <div className="flex flex-1 items-center justify-between gap-3">
-                        <span className="font-semibold tracking-wide text-slate-50 drop-shadow-[0_1px_0_rgba(2,6,23,0.75)]">
+                        <span className="font-semibold tracking-wide text-foreground drop-shadow-[0_1px_0_rgba(2,6,23,0.35)]">
                           {option.player.firstName} {option.player.lastName} ({option.player.position})
                         </span>
 
@@ -293,7 +293,7 @@ export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLo
           type="button"
           disabled={!entrant || locked || saveLoading}
           onClick={() => void savePicks()}
-          className="bg-cyan-400 text-slate-950 hover:bg-cyan-300"
+          className="bg-brand text-brand-foreground hover:bg-brand/90"
         >
           {saveLoading ? "Saving picks..." : "Save picks"}
         </Button>

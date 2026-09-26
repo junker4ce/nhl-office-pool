@@ -266,10 +266,10 @@ export function PoolBoxSetup({ pools }: Props) {
   }
 
   return (
-    <Card className="border-cyan-300/20 bg-slate-900/85">
+    <Card className="border-brand/20 bg-card">
       <CardHeader>
-        <CardTitle className="text-slate-100">Pool box setup</CardTitle>
-        <CardDescription className="text-slate-300">
+        <CardTitle>Pool box setup</CardTitle>
+        <CardDescription>
           Define each box and add player choices for entrants.
         </CardDescription>
       </CardHeader>
@@ -282,7 +282,7 @@ export function PoolBoxSetup({ pools }: Props) {
                 id="poolId"
                 value={selectedPoolId}
                 onChange={(event) => setSelectedPoolId(event.target.value)}
-                className="h-8 w-full rounded-md border border-slate-700 bg-slate-950 px-2 text-sm text-slate-100"
+                className="h-8 w-full rounded-md border border-border bg-background px-2 text-sm text-foreground"
               >
                 {pools.map((pool) => (
                   <option key={pool.id} value={pool.id}>
@@ -292,17 +292,17 @@ export function PoolBoxSetup({ pools }: Props) {
               </select>
             </div>
           )}
-          <div className="rounded-md border border-slate-700/70 bg-slate-950/50 p-3 text-sm text-slate-200">
-            <p className="font-semibold text-slate-100">Office pool details</p>
+          <div className="rounded-md border border-border bg-muted/40 p-3 text-sm text-foreground">
+            <p className="font-semibold text-foreground">Office pool details</p>
             <p>Name: {selectedPool?.name ?? "-"}</p>
             <p>Configured boxes: {poolData?.boxes.length ?? 0} / {selectedPool?.boxCount ?? 0}</p>
           </div>
         </div>
 
-        {!selectedPool && <p className="text-sm text-slate-300">No office pool has been created yet.</p>}
+        {!selectedPool && <p className="text-sm text-muted-foreground">No office pool has been created yet.</p>}
 
         {selectedPool && (
-          <form action={createBox} className="grid gap-3 rounded-md border border-slate-700/70 bg-slate-950/40 p-3 lg:grid-cols-4">
+          <form action={createBox} className="grid gap-3 rounded-md border border-border bg-muted/30 p-3 lg:grid-cols-4">
           <div className="space-y-2 lg:col-span-2">
             <Label htmlFor="title">Box title</Label>
             <Input id="title" name="title" placeholder="Top Scorer" required minLength={2} />
@@ -316,7 +316,7 @@ export function PoolBoxSetup({ pools }: Props) {
             <Input id="description" name="description" placeholder="Any winger" />
           </div>
             <div className="lg:col-span-4">
-              <Button type="submit" disabled={creatingBox || !selectedPoolId} className="bg-cyan-400 text-slate-950 hover:bg-cyan-300">
+              <Button type="submit" disabled={creatingBox || !selectedPoolId} className="bg-brand text-brand-foreground hover:bg-brand/90">
                 {creatingBox ? "Creating box..." : "Create box"}
               </Button>
             </div>
@@ -324,14 +324,14 @@ export function PoolBoxSetup({ pools }: Props) {
         )}
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <div className="space-y-3 rounded-md border border-slate-700/70 bg-slate-950/40 p-3">
-            <p className="text-sm font-semibold text-slate-100">Player search</p>
+          <div className="space-y-3 rounded-md border border-border bg-muted/30 p-3">
+            <p className="text-sm font-semibold text-foreground">Player search</p>
             <Input
               value={searchQuery}
               onChange={(event) => void searchPlayers(event.target.value)}
               placeholder="Search players by name"
             />
-            <p className="text-xs text-slate-300">
+            <p className="text-xs text-muted-foreground">
               Searches players already saved in this app database. If no results appear, add players below first.
             </p>
 
@@ -342,7 +342,7 @@ export function PoolBoxSetup({ pools }: Props) {
                   id="activeBoxId"
                   value={activeBoxId}
                   onChange={(event) => setActiveBoxId(event.target.value)}
-                  className="h-8 w-full rounded-md border border-slate-700 bg-slate-950 px-2 text-sm text-slate-100"
+                  className="h-8 w-full rounded-md border border-border bg-background px-2 text-sm text-foreground"
                 >
                   {poolData.boxes.map((box) => (
                     <option key={box.id} value={box.id}>
@@ -354,27 +354,27 @@ export function PoolBoxSetup({ pools }: Props) {
             ) : (
               searchQuery.trim() &&
               availableSearchResults.length > 0 && (
-                <p className="text-xs text-amber-200">Create a box below before assigning players.</p>
+                <p className="text-xs text-amber-600 dark:text-amber-300">Create a box below before assigning players.</p>
               )
             )}
 
-            <div className="max-h-80 space-y-2 overflow-y-auto pr-1 text-sm text-slate-200">
+            <div className="max-h-80 space-y-2 overflow-y-auto pr-1 text-sm text-foreground">
               {!searchQuery.trim() && <p>Type a player name to search.</p>}
               {searchLoading && <p>Searching players...</p>}
-              {searchError && <p className="text-rose-200">{searchError}</p>}
+              {searchError && <p className="text-destructive">{searchError}</p>}
               {!searchLoading && !searchError && searchQuery.trim() && availableSearchResults.length === 0 && (
                 <p>No available players match this search.</p>
               )}
               {availableSearchResults.map((player) => (
                 <div
                   key={player.id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-slate-700/70 bg-slate-900/50 p-2"
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-muted/40 p-2"
                 >
                   <div>
-                    <p className="font-medium text-slate-100">
+                    <p className="font-medium text-foreground">
                       {player.firstName} {player.lastName}
                     </p>
-                    <p className="text-xs text-slate-300">
+                    <p className="text-xs text-muted-foreground">
                       {player.position} {player.team ? `- ${player.team.abbreviation}` : ""}
                     </p>
                   </div>
@@ -384,7 +384,7 @@ export function PoolBoxSetup({ pools }: Props) {
                       size="sm"
                       disabled={!activeBoxId || addingPlayerId === player.id}
                       onClick={() => void addOption(activeBoxId, player.id)}
-                      className="bg-cyan-400 text-slate-950 hover:bg-cyan-300"
+                      className="bg-brand text-brand-foreground hover:bg-brand/90"
                     >
                       {addingPlayerId === player.id ? "Adding..." : "Add"}
                     </Button>
@@ -394,9 +394,9 @@ export function PoolBoxSetup({ pools }: Props) {
             </div>
           </div>
 
-          <div className="space-y-3 rounded-md border border-slate-700/70 bg-slate-950/40 p-3">
-            <p className="text-sm font-semibold text-slate-100">Quick add player</p>
-            <p className="text-xs text-slate-300">
+          <div className="space-y-3 rounded-md border border-border bg-muted/30 p-3">
+            <p className="text-sm font-semibold text-foreground">Quick add player</p>
+            <p className="text-xs text-muted-foreground">
               Use this when a player is not in search results yet.
             </p>
             <div className="grid gap-2 lg:grid-cols-2">
@@ -440,7 +440,7 @@ export function PoolBoxSetup({ pools }: Props) {
                 !playerForm.position
               }
               onClick={() => void savePlayer()}
-              className="bg-cyan-400 text-slate-950 hover:bg-cyan-300"
+              className="bg-brand text-brand-foreground hover:bg-brand/90"
             >
               {savingPlayer ? "Saving player..." : "Save player"}
             </Button>
@@ -448,41 +448,41 @@ export function PoolBoxSetup({ pools }: Props) {
         </div>
 
         <div className="space-y-3">
-          <p className="text-sm font-semibold text-slate-100">Boxes</p>
-          {loading && <p className="text-sm text-slate-300">Loading boxes...</p>}
+          <p className="text-sm font-semibold text-foreground">Boxes</p>
+          {loading && <p className="text-sm text-muted-foreground">Loading boxes...</p>}
           {!loading && (!poolData || poolData.boxes.length === 0) && (
-            <p className="text-sm text-slate-300">No boxes yet.</p>
+            <p className="text-sm text-muted-foreground">No boxes yet.</p>
           )}
 
           {!loading &&
             poolData?.boxes.map((box) => (
-              <div key={box.id} className="space-y-3 rounded-md border border-slate-700/70 bg-slate-950/50 p-3">
+              <div key={box.id} className="space-y-3 rounded-md border border-border bg-muted/40 p-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-semibold text-slate-100">
+                    <p className="font-semibold text-foreground">
                       #{box.boxOrder} {box.title}
                     </p>
-                    {box.description && <p className="text-xs text-slate-300">{box.description}</p>}
+                    {box.description && <p className="text-xs text-muted-foreground">{box.description}</p>}
                   </div>
-                  <Badge variant="outline" className="text-slate-100">
+                  <Badge variant="outline">
                     {box.playerOptions.length} options
                   </Badge>
                 </div>
 
                 <div className="grid gap-2 lg:grid-cols-2">
                   {box.playerOptions.length === 0 && (
-                    <p className="text-xs text-slate-300">No options yet.</p>
+                    <p className="text-xs text-muted-foreground">No options yet.</p>
                   )}
                   {box.playerOptions.map((option) => (
-                    <div key={option.id} className="flex items-center justify-between rounded-md border border-slate-700 bg-slate-900/50 p-2">
-                      <p className="text-sm text-slate-100">
+                    <div key={option.id} className="flex items-center justify-between rounded-md border border-border bg-muted/60 p-2">
+                      <p className="text-sm text-foreground">
                         {option.player.firstName} {option.player.lastName} ({option.player.position})
                       </p>
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="text-rose-200 hover:bg-rose-950/60"
+                        className="text-destructive hover:bg-destructive/10"
                         onClick={() => void deleteOption(box.id, option.id)}
                       >
                         Remove
@@ -494,7 +494,7 @@ export function PoolBoxSetup({ pools }: Props) {
             ))}
         </div>
 
-        {message && <p className="text-sm text-cyan-100">{message}</p>}
+        {message && <p className="text-sm text-brand">{message}</p>}
       </CardContent>
     </Card>
   );

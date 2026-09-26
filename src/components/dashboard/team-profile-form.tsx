@@ -66,10 +66,10 @@ export function TeamProfileForm({ initialTeamName, initialTeamLogoData }: Props)
   }
 
   return (
-    <Card className="border-cyan-300/20 bg-slate-900/85">
+    <Card className="border-brand/20 bg-card">
       <CardHeader>
-        <CardTitle className="text-slate-100">Your team identity</CardTitle>
-        <CardDescription className="text-slate-300">
+        <CardTitle>Your team identity</CardTitle>
+        <CardDescription>
           Set the name and logo your office pool teammates will recognize.
         </CardDescription>
       </CardHeader>
@@ -98,21 +98,21 @@ export function TeamProfileForm({ initialTeamName, initialTeamLogoData }: Props)
                 accept="image/png,image/jpeg,image/webp,image/gif"
                 onChange={(event) => void onLogoChange(event.target.files?.[0])}
               />
-              <p className="text-xs text-slate-400">PNG, JPG, WEBP, or GIF up to 512 KB.</p>
+              <p className="text-xs text-muted-foreground">PNG, JPG, WEBP, or GIF up to 512 KB.</p>
             </div>
             <div className="flex items-center gap-3">
-              <Button type="submit" className="bg-cyan-400 text-slate-950 hover:bg-cyan-300" disabled={isSaving}>
+              <Button type="submit" className="bg-brand text-brand-foreground hover:bg-brand/90" disabled={isSaving}>
                 {isSaving ? "Saving..." : "Save team"}
               </Button>
-              {saved && <span className="text-sm text-emerald-300">Team profile saved.</span>}
-              {error && <span className="text-sm text-rose-300">{error}</span>}
+              {saved && <span className="text-sm text-emerald-600 dark:text-emerald-400">Team profile saved.</span>}
+              {error && <span className="text-sm text-destructive">{error}</span>}
             </div>
           </div>
-          <div className="size-32 overflow-hidden rounded-full border border-cyan-300/20 bg-slate-950/60 p-3">
+          <div className="size-32 overflow-hidden rounded-full border border-brand/20 bg-muted/50 p-3">
             {logoData ? (
               <img src={logoData} alt="Team logo preview" className="size-full rounded-full object-contain" />
             ) : (
-              <span className="flex size-full items-center justify-center text-center text-xs uppercase tracking-[0.2em] text-slate-500">No logo</span>
+              <span className="flex size-full items-center justify-center text-center text-xs uppercase tracking-[0.2em] text-muted-foreground">No logo</span>
             )}
           </div>
         </form>

@@ -35,26 +35,26 @@ const features: Feature[] = [
 
 export function FeatureShowcase() {
   return (
-    <div className="space-y-4 rounded-3xl border border-cyan-300/25 bg-slate-900/85 p-6 shadow-[0_24px_80px_-40px_rgba(16,185,129,0.65)]">
+    <div className="space-y-4 rounded-3xl border border-brand/25 bg-card p-6 shadow-[0_24px_80px_-40px_rgba(16,185,129,0.35)]">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200/80">
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-brand/80">
           What is included
         </p>
-        <h2 className="font-heading text-4xl uppercase text-cyan-100">
+        <h2 className="font-heading text-4xl uppercase text-brand">
           MVP experience
         </h2>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
         {features.map((feature) => (
-          <Card key={feature.title} className="border-cyan-300/20 bg-slate-950/60">
+          <Card key={feature.title} className="border-brand/20 bg-muted/50">
             <CardHeader>
-              <CardTitle className="text-sm uppercase tracking-[0.2em] text-cyan-200/80">
+              <CardTitle className="text-sm uppercase tracking-[0.2em] text-brand/80">
                 {feature.eyebrow}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <p className="font-semibold text-slate-100">{feature.title}</p>
-              <p className="text-sm text-slate-300">{feature.description}</p>
+              <p className="font-semibold text-foreground">{feature.title}</p>
+              <p className="text-sm text-muted-foreground">{feature.description}</p>
             </CardContent>
           </Card>
         ))}

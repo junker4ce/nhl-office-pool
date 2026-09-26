@@ -57,10 +57,10 @@ export function SignupForm() {
   }
 
   return (
-    <Card className="border-cyan-300/20 bg-slate-900/90">
+    <Card className="border-brand/20 bg-card">
       <CardHeader>
-        <CardTitle className="font-heading text-4xl uppercase text-cyan-100">Create account</CardTitle>
-        <CardDescription className="text-slate-300">
+        <CardTitle className="font-heading text-4xl uppercase text-brand">Create account</CardTitle>
+        <CardDescription>
           Join your NHL office pool in under a minute.
         </CardDescription>
       </CardHeader>
@@ -82,8 +82,8 @@ export function SignupForm() {
             <Label htmlFor="password">Password</Label>
             <Input id="password" name="password" type="password" minLength={8} required />
           </div>
-          {error && <p className="text-sm text-rose-300">{error}</p>}
-          <Button type="submit" className="w-full bg-cyan-400 text-slate-950 hover:bg-cyan-300" disabled={isSubmitting}>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <Button type="submit" className="w-full bg-brand text-brand-foreground hover:bg-brand/90" disabled={isSubmitting}>
             {isSubmitting ? "Creating account..." : "Create account"}
           </Button>
         </form>
