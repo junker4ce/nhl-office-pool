@@ -5,6 +5,10 @@ const NHL_ACTIVE_TEAMS_ENDPOINT = "https://api-web.nhle.com/v1/standings/now";
 const NHL_TEAMS_ENDPOINT = "https://api.nhle.com/stats/rest/en/team";
 const NHL_TEAM_ROSTER_ENDPOINT = (teamAbbreviation: string, seasonId: string) =>
   `https://api-web.nhle.com/v1/roster/${teamAbbreviation}/${seasonId}`;
+const NHL_SCORE_ENDPOINT = (date: string) => `https://api-web.nhle.com/v1/score/${date}`;
+const NHL_BOXSCORE_ENDPOINT = (gameId: number) => `https://api-web.nhle.com/v1/gamecenter/${gameId}/boxscore`;
+
+const COMPLETED_GAME_STATES = new Set(["OFF", "FINAL"]);
 
 type ActiveTeamsApiResponse = {
   standings?: Array<{
@@ -101,15 +105,49 @@ type TeamRosterApiResponse = {
   [key: string]: TeamRosterPlayer[] | undefined;
 };
 
+type ScoreApiResponse = {
+  games?: Array<{
+    id: number;
+    gameState?: string;
+  }>;
+};
+
+type BoxscorePlayerStat = {
+  playerId: number;
+  goals?: number;
+  assists?: number;
+  decision?: string;
+  goalsAgainst?: number;
+  shutout?: number;
+};
+
+type BoxscoreTeamStats = {
+  forwards?: BoxscorePlayerStat[];
+  defense?: BoxscorePlayerStat[];
+  goalies?: BoxscorePlayerStat[];
+};
+
+type BoxscoreApiResponse = {
+  playerByGameStats?: {
+    awayTeam?: BoxscoreTeamStats;
+    homeTeam?: BoxscoreTeamStats;
+  };
+};
+
 export class NhlSyncError extends Error {
   upserted: number;
   teamsProcessed: number;
+  gamesProcessed: number;
 
-  constructor(message: string, progress?: { upserted?: number; teamsProcessed?: number }) {
+  constructor(
+    message: string,
+    progress?: { upserted?: number; teamsProcessed?: number; gamesProcessed?: number },
+  ) {
     super(message);
     this.name = "NhlSyncError";
     this.upserted = progress?.upserted ?? 0;
     this.teamsProcessed = progress?.teamsProcessed ?? 0;
+    this.gamesProcessed = progress?.gamesProcessed ?? 0;
   }
 }
 
@@ -292,5 +330,132 @@ export async function syncNhlPlayers() {
   return {
     upserted,
     teamsProcessed,
+  };
+}
+
+function flattenBoxscoreStats(payload: BoxscoreApiResponse) {
+  const teams = [payload.playerByGameStats?.awayTeam, payload.playerByGameStats?.homeTeam];
+  const skaters: BoxscorePlayerStat[] = [];
+  const goalies: BoxscorePlayerStat[] = [];
+
+  for (const team of teams) {
+    skaters.push(...(team?.forwards ?? []), ...(team?.defense ?? []));
+    goalies.push(...(team?.goalies ?? []));
+  }
+
+  return { skaters, goalies };
+}
+
+// The NHL API doesn't consistently expose a `shutout` flag on goalie boxscore
+// stats, so a win with zero goals against is treated as a shutout. Verify
+// this against a real shutout game if the NHL API's field names change.
+function isGoalieShutout(goalie: BoxscorePlayerStat) {
+  if (typeof goalie.shutout === "number") {
+    return goalie.shutout > 0;
+  }
+
+  return goalie.decision === "W" && (goalie.goalsAgainst ?? 0) === 0;
+}
+
+export async function syncDailyPlayerStats(date: string) {
+  const scoreRes = await fetch(NHL_SCORE_ENDPOINT(date), {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  if (!scoreRes.ok) {
+    throw new Error(`NHL score API failed for ${date} with status ${scoreRes.status}`);
+  }
+
+  const scorePayload = (await scoreRes.json()) as ScoreApiResponse;
+  const completedGames = (scorePayload.games ?? []).filter(
+    (game) => game.gameState && COMPLETED_GAME_STATES.has(game.gameState),
+  );
+
+  let upserted = 0;
+  let gamesProcessed = 0;
+
+  for (const game of completedGames) {
+    const boxscoreRes = await fetch(NHL_BOXSCORE_ENDPOINT(game.id), {
+      method: "GET",
+      cache: "no-store",
+    });
+
+    if (!boxscoreRes.ok) {
+      throw new NhlSyncError(
+        `NHL boxscore API failed for game ${game.id} with status ${boxscoreRes.status}`,
+        { upserted, gamesProcessed },
+      );
+    }
+
+    const boxscorePayload = (await boxscoreRes.json()) as BoxscoreApiResponse;
+    const { skaters, goalies } = flattenBoxscoreStats(boxscorePayload);
+
+    const nhlIds = [...skaters, ...goalies].map((entry) => entry.playerId);
+    const players = await db.player.findMany({
+      where: { nhlId: { in: nhlIds } },
+      select: { id: true, nhlId: true },
+    });
+    const playerIdByNhlId = new Map(players.map((player) => [player.nhlId, player.id]));
+
+    for (const skater of skaters) {
+      const playerId = playerIdByNhlId.get(skater.playerId);
+
+      if (!playerId) {
+        continue;
+      }
+
+      await db.dailyPlayerStat.upsert({
+        where: { gameId_playerId: { gameId: game.id, playerId } },
+        create: {
+          gameId: game.id,
+          statDate: new Date(date),
+          playerId,
+          goals: skater.goals ?? 0,
+          assists: skater.assists ?? 0,
+        },
+        update: {
+          goals: skater.goals ?? 0,
+          assists: skater.assists ?? 0,
+        },
+      });
+
+      upserted += 1;
+    }
+
+    for (const goalie of goalies) {
+      const playerId = playerIdByNhlId.get(goalie.playerId);
+
+      if (!playerId) {
+        continue;
+      }
+
+      const goalieWin = goalie.decision === "W" ? 1 : 0;
+      const goalieShutout = isGoalieShutout(goalie) ? 1 : 0;
+
+      await db.dailyPlayerStat.upsert({
+        where: { gameId_playerId: { gameId: game.id, playerId } },
+        create: {
+          gameId: game.id,
+          statDate: new Date(date),
+          playerId,
+          goalieWin,
+          goalieShutout,
+        },
+        update: {
+          goalieWin,
+          goalieShutout,
+        },
+      });
+
+      upserted += 1;
+    }
+
+    gamesProcessed += 1;
+  }
+
+  return {
+    upserted,
+    gamesProcessed,
   };
 }
