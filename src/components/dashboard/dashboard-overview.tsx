@@ -20,15 +20,29 @@ type PoolSummary = {
   boxCount: number;
 };
 
+type EntrantTeam = {
+  id: string;
+  teamName: string;
+  teamLogoData: string | null;
+};
+
 type Props = {
   displayName: string;
   role: string;
   teamName: string | null;
   teamLogoData: string | null;
   pools: PoolSummary[];
+  entrantTeams: EntrantTeam[];
 };
 
-export function DashboardOverview({ displayName, role, teamName, teamLogoData, pools }: Props) {
+export function DashboardOverview({
+  displayName,
+  role,
+  teamName,
+  teamLogoData,
+  pools,
+  entrantTeams,
+}: Props) {
   const currentPool = pools[0] ?? null;
   const joined = currentPool ? currentPool.joined : false;
   const open = currentPool ? !currentPool.locked : false;
@@ -118,6 +132,43 @@ export function DashboardOverview({ displayName, role, teamName, teamLogoData, p
                   Open
                 </Link>
               </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card className="border-brand/20 bg-card">
+        <CardHeader>
+          <CardTitle>Teams in the pool</CardTitle>
+          <CardDescription>
+            Everyone who has joined the office pool so far.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {entrantTeams.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              No one has joined the office pool yet.
+            </p>
+          )}
+          {entrantTeams.map((entrant) => (
+            <div
+              key={entrant.id}
+              className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-3"
+            >
+              <div className="size-10 shrink-0 overflow-hidden rounded-full border border-brand/20 bg-muted/50">
+                {entrant.teamLogoData ? (
+                  <img
+                    src={entrant.teamLogoData}
+                    alt={`${entrant.teamName} logo`}
+                    className="size-full object-contain"
+                  />
+                ) : (
+                  <div className="flex size-full items-center justify-center text-xs text-muted-foreground">
+                    N/A
+                  </div>
+                )}
+              </div>
+              <p className="font-semibold text-foreground">{entrant.teamName}</p>
             </div>
           ))}
         </CardContent>

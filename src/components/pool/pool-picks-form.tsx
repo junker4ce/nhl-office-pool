@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { EntrantPick, Pool, PoolEntrant, PoolBox, PoolBoxPlayerOption, Player, Season, Team } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,11 +33,13 @@ type Props = {
 };
 
 export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLocked }: Props) {
+  const router = useRouter();
   const [entrant, setEntrant] = useState<EntrantWithPicks | null>(initialEntrant);
   const [locked, setLocked] = useState(initialLocked);
   const [message, setMessage] = useState<string | null>(null);
   const [joinLoading, setJoinLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   const [selectedByBoxId, setSelectedByBoxId] = useState<Record<string, string>>(() => {
     const values: Record<string, string> = {};
@@ -131,8 +134,12 @@ export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLo
       return;
     }
 
-    setMessage("Picks saved.");
     await refreshData();
+    setMessage("Picks saved! Taking you to your dashboard...");
+    setRedirecting(true);
+    setTimeout(() => {
+      router.push("/dashboard");
+    }, 1000);
   }
 
   return (
@@ -288,14 +295,19 @@ export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLo
         </Card>
       ))}
 
-      <div className="flex justify-end">
+      <div className="flex flex-col items-end gap-2">
+        {entrant && message && (
+          <p className={redirecting ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}>
+            {message}
+          </p>
+        )}
         <Button
           type="button"
-          disabled={!entrant || locked || saveLoading}
+          disabled={!entrant || locked || saveLoading || redirecting}
           onClick={() => void savePicks()}
           className="bg-brand text-brand-foreground hover:bg-brand/90"
         >
-          {saveLoading ? "Saving picks..." : "Save picks"}
+          {redirecting ? "Picks saved!" : saveLoading ? "Saving picks..." : "Save picks"}
         </Button>
       </div>
     </div>

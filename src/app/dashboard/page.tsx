@@ -48,6 +48,25 @@ export default async function DashboardPage() {
       ]
     : [];
 
+  const entrantTeams = pool
+    ? (
+        await db.poolEntrant.findMany({
+          where: { poolId: pool.id },
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            user: {
+              select: { teamName: true, teamLogoData: true, displayName: true },
+            },
+          },
+        })
+      ).map((entrant) => ({
+        id: entrant.id,
+        teamName: entrant.user.teamName ?? entrant.user.displayName,
+        teamLogoData: entrant.user.teamLogoData,
+      }))
+    : [];
+
   return (
     <section className="mx-auto w-full max-w-6xl px-6 py-10 md:px-10">
       <DashboardOverview
@@ -56,6 +75,7 @@ export default async function DashboardPage() {
         teamName={user.teamName}
         teamLogoData={user.teamLogoData}
         pools={pools}
+        entrantTeams={entrantTeams}
       />
     </section>
   );
