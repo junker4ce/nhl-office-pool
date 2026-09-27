@@ -48,6 +48,12 @@ export default async function DashboardPage() {
       ]
     : [];
 
+  const dateFormatter = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
   const entrantTeams = pool
     ? (
         await db.poolEntrant.findMany({
@@ -55,15 +61,23 @@ export default async function DashboardPage() {
           orderBy: { createdAt: "asc" },
           select: {
             id: true,
+            createdAt: true,
             user: {
-              select: { teamName: true, teamLogoData: true, displayName: true },
+              select: { teamName: true, teamLogoData: true, displayName: true, fullName: true },
+            },
+            _count: {
+              select: { picks: true },
             },
           },
         })
       ).map((entrant) => ({
         id: entrant.id,
         teamName: entrant.user.teamName ?? entrant.user.displayName,
+        ownerName: entrant.user.fullName ?? entrant.user.displayName,
         teamLogoData: entrant.user.teamLogoData,
+        joinedLabel: dateFormatter.format(entrant.createdAt),
+        picksMade: entrant._count.picks,
+        boxCount: pool.boxCount,
       }))
     : [];
 

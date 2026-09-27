@@ -23,7 +23,11 @@ type PoolSummary = {
 type EntrantTeam = {
   id: string;
   teamName: string;
+  ownerName: string;
   teamLogoData: string | null;
+  joinedLabel: string;
+  picksMade: number;
+  boxCount: number;
 };
 
 type Props = {
@@ -150,27 +154,46 @@ export function DashboardOverview({
               No one has joined the office pool yet.
             </p>
           )}
-          {entrantTeams.map((entrant) => (
-            <div
-              key={entrant.id}
-              className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-3"
-            >
-              <div className="size-10 shrink-0 overflow-hidden rounded-full border border-brand/20 bg-muted/50">
-                {entrant.teamLogoData ? (
-                  <img
-                    src={entrant.teamLogoData}
-                    alt={`${entrant.teamName} logo`}
-                    className="size-full object-contain"
-                  />
-                ) : (
-                  <div className="flex size-full items-center justify-center text-xs text-muted-foreground">
-                    N/A
+          {entrantTeams.map((entrant) => {
+            const picksComplete = entrant.picksMade >= entrant.boxCount;
+            return (
+              <div
+                key={entrant.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 p-3"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="size-10 shrink-0 overflow-hidden rounded-full border border-brand/20 bg-muted/50">
+                    {entrant.teamLogoData ? (
+                      <img
+                        src={entrant.teamLogoData}
+                        alt={`${entrant.teamName} logo`}
+                        className="size-full object-contain"
+                      />
+                    ) : (
+                      <div className="flex size-full items-center justify-center text-xs text-muted-foreground">
+                        N/A
+                      </div>
+                    )}
                   </div>
-                )}
+                  <div>
+                    <p className="font-semibold text-foreground">{entrant.teamName}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {entrant.ownerName} • Joined {entrant.joinedLabel}
+                    </p>
+                  </div>
+                </div>
+                <Badge
+                  className={
+                    picksComplete
+                      ? "bg-brand/15 text-brand"
+                      : "bg-muted text-muted-foreground"
+                  }
+                >
+                  {entrant.picksMade}/{entrant.boxCount} picks
+                </Badge>
               </div>
-              <p className="font-semibold text-foreground">{entrant.teamName}</p>
-            </div>
-          ))}
+            );
+          })}
         </CardContent>
       </Card>
     </div>

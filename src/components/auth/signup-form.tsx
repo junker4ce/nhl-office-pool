@@ -19,6 +19,7 @@ export function SignupForm() {
 
     const payload = {
       displayName: String(formData.get("displayName") ?? "").trim(),
+      fullName: String(formData.get("fullName") ?? "").trim(),
       teamName: String(formData.get("teamName") ?? "").trim(),
       email: String(formData.get("email") ?? "").trim().toLowerCase(),
       password: String(formData.get("password") ?? ""),
@@ -66,6 +67,10 @@ export function SignupForm() {
       </CardHeader>
       <CardContent>
         <form action={onSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="fullName">Full name</Label>
+            <Input id="fullName" name="fullName" required minLength={2} maxLength={120} />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="displayName">Display name</Label>
             <Input id="displayName" name="displayName" required minLength={2} />

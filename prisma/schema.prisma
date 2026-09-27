@@ -29,6 +29,7 @@ model User {
   email          String        @unique
   passwordHash   String
   displayName    String
+  fullName       String?       @db.VarChar(120)
   teamName       String?       @db.VarChar(80)
   teamLogoData   String?       @db.Text
   role           UserRole      @default(ENTRANT)

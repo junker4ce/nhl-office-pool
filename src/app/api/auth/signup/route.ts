@@ -8,6 +8,7 @@ const signupSchema = z.object({
   email: z.email(),
   password: z.string().min(8),
   displayName: z.string().min(2).max(80),
+  fullName: z.string().trim().min(2).max(120),
   teamName: z.string().trim().min(2).max(80),
 });
 
@@ -35,6 +36,7 @@ export async function POST(request: Request) {
         email: normalizedEmail,
         passwordHash,
         displayName: parsed.data.displayName.trim(),
+        fullName: parsed.data.fullName.trim(),
         teamName: parsed.data.teamName,
         role: userCount === 0 ? UserRole.ADMIN : UserRole.ENTRANT,
       },
