@@ -37,7 +37,6 @@ export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLo
   const [entrant, setEntrant] = useState<EntrantWithPicks | null>(initialEntrant);
   const [locked, setLocked] = useState(initialLocked);
   const [message, setMessage] = useState<string | null>(null);
-  const [joinLoading, setJoinLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
 
@@ -78,29 +77,7 @@ export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLo
     setSelectedByBoxId(values);
   }
 
-  async function joinPool() {
-    setJoinLoading(true);
-    setMessage(null);
-
-    const response = await fetch(`/api/pools/${pool.id}/join`, {
-      method: "POST",
-    });
-
-    setJoinLoading(false);
-
-    if (!response.ok) {
-      const data = (await response.json().catch(() => null)) as { error?: string } | null;
-      setMessage(data?.error ?? "Could not join pool.");
-      return;
-    }
-
-    await refreshData();
-    setMessage("Joined pool. You can now submit picks.");
-  }
-
   async function savePicks() {
-    if (!entrant) return;
-
     setSaveLoading(true);
     setMessage(null);
 
@@ -134,8 +111,13 @@ export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLo
       return;
     }
 
+    const wasNewJoin = !entrant;
     await refreshData();
-    setMessage("Picks saved! Taking you to your dashboard...");
+    setMessage(
+      wasNewJoin
+        ? "Joined pool and picks saved! Taking you to your dashboard..."
+        : "Picks saved! Taking you to your dashboard...",
+    );
     setRedirecting(true);
     setTimeout(() => {
       router.push("/dashboard");
@@ -163,17 +145,11 @@ export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLo
             Progress: {completedCount} / {pool.boxes.length} boxes selected
           </p>
           {!entrant && !locked && (
-            <Button
-              type="button"
-              onClick={() => void joinPool()}
-              disabled={joinLoading}
-              className="bg-brand text-brand-foreground hover:bg-brand/90"
-            >
-              {joinLoading ? "Joining..." : "Join this pool"}
-            </Button>
+            <p className="text-muted-foreground">
+              Make your picks below and save to join the pool.
+            </p>
           )}
           {!entrant && locked && <p>Pool is locked and can no longer be joined.</p>}
-          {message && <p className="text-brand">{message}</p>}
         </CardContent>
       </Card>
 
@@ -247,7 +223,7 @@ export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLo
                             [box.id]: event.target.value,
                           }))
                         }
-                        disabled={!entrant || locked}
+                        disabled={locked}
                       />
 
                       <span
@@ -296,14 +272,14 @@ export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLo
       ))}
 
       <div className="flex flex-col items-end gap-2">
-        {entrant && message && (
+        {message && (
           <p className={redirecting ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}>
             {message}
           </p>
         )}
         <Button
           type="button"
-          disabled={!entrant || locked || saveLoading || redirecting}
+          disabled={locked || saveLoading || redirecting}
           onClick={() => void savePicks()}
           className="bg-brand text-brand-foreground hover:bg-brand/90"
         >

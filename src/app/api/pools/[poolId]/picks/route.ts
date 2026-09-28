@@ -107,6 +107,12 @@ export async function PUT(request: Request, { params }: Params) {
       id: true,
       isLocked: true,
       lockAt: true,
+      entrantLimit: true,
+      _count: {
+        select: {
+          entrants: true,
+        },
+      },
     },
   });
 
@@ -118,7 +124,7 @@ export async function PUT(request: Request, { params }: Params) {
     return NextResponse.json({ error: "Pool is locked" }, { status: 409 });
   }
 
-  const entrant = await db.poolEntrant.findUnique({
+  let entrant = await db.poolEntrant.findUnique({
     where: {
       poolId_userId: {
         poolId,
@@ -131,10 +137,31 @@ export async function PUT(request: Request, { params }: Params) {
   });
 
   if (!entrant) {
-    return NextResponse.json(
-      { error: "Join the pool before submitting picks." },
-      { status: 403 },
-    );
+    if (pool.entrantLimit && pool._count.entrants >= pool.entrantLimit) {
+      return NextResponse.json({ error: "Pool is full" }, { status: 409 });
+    }
+
+    entrant = await db.poolEntrant.create({
+      data: {
+        poolId,
+        userId: session.user.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    await db.auditLog.create({
+      data: {
+        actorUserId: session.user.id,
+        action: "pool.join",
+        entityType: "poolEntrant",
+        entityId: entrant.id,
+        metadata: {
+          poolId,
+        },
+      },
+    });
   }
 
   const picks = parsed.data.picks;
