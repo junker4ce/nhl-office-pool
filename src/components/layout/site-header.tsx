@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -10,10 +11,29 @@ export async function SiteHeader() {
   const session = await getServerSession(authOptions);
 
   return (
-    <header className="border-b border-border bg-background/95 backdrop-blur">
+    <header className="border-b border-brand/20 bg-background/95 backdrop-blur">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4 md:px-10">
-        <Link href="/" className="font-heading text-3xl uppercase tracking-wide text-brand">
-          NHL Office Pool
+        <Link href="/" className="flex shrink-0 items-center gap-3" aria-label="VitaOne NHL Office Pool">
+          <Image
+            src="/brand/vitaone-on-white.svg"
+            alt="VitaOne"
+            width={109}
+            height={36}
+            className="h-6 w-auto dark:hidden"
+            priority
+          />
+          <Image
+            src="/brand/vitaone-on-black.svg"
+            alt="VitaOne"
+            width={109}
+            height={36}
+            className="hidden h-6 w-auto dark:block"
+            priority
+          />
+          <span className="hidden h-5 w-px bg-border sm:block" aria-hidden="true" />
+          <span className="hidden whitespace-nowrap font-heading text-3xl uppercase tracking-wide text-brand sm:inline">
+            NHL Office Pool
+          </span>
         </Link>
         <nav className="flex items-center gap-2">
           {session && (
