@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { PoolMascot } from "@/components/layout/pool-mascot";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,53 +56,50 @@ export default async function PoolsPage() {
   const joined = pool ? pool.entrants.length > 0 : false;
 
   return (
-    <section className="relative mx-auto w-full max-w-6xl px-6 py-10 md:px-10">
+    <section className="mx-auto w-full max-w-6xl px-6 py-10 md:px-10">
       <div className="mb-5 flex items-center justify-between">
         <h1 className="font-heading text-5xl uppercase text-brand">Office pool</h1>
         <Badge className="bg-brand/15 text-brand">Single pool setup</Badge>
       </div>
-      <div className="grid gap-6 md:grid-cols-[minmax(0,220px)_1fr] md:items-start lg:grid-cols-[minmax(0,280px)_1fr] 2xl:grid-cols-1">
-        <PoolMascot />
-        <Card className="border-brand/20 bg-card">
-          <CardHeader>
-            <CardTitle>Current office pool</CardTitle>
-            <CardDescription>
-              Join the office pool and submit one player pick per box before lock.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm text-foreground">
-            {!pool && <p>No office pool is configured yet.</p>}
-            {pool && (
-              <div className="rounded-md border border-border bg-muted/40 p-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-semibold text-foreground">{pool.name}</p>
-                  <Badge className={locked ? "bg-destructive/15 text-destructive" : "bg-brand/15 text-brand"}>
-                    {locked ? "Locked" : "Open"}
-                  </Badge>
-                </div>
-                <p>Season: {pool.season.label}</p>
-                <p>
-                  Entrants: {pool._count.entrants}
-                  {pool.entrantLimit ? ` / ${pool.entrantLimit}` : ""}
-                </p>
-                <p>Boxes configured: {pool._count.boxes} / {pool.boxCount}</p>
-                <p>Status: {joined ? "Joined" : "Not joined"}</p>
-                <div className="mt-3">
-                  <Link
-                    href={`/pools/${pool.id}`}
-                    className={cn(
-                      buttonVariants({ variant: "outline" }),
-                      "border-brand/40 text-brand hover:bg-brand/10",
-                    )}
-                  >
-                    Open picks
-                  </Link>
-                </div>
+      <Card className="border-brand/20 bg-card">
+        <CardHeader>
+          <CardTitle>Current office pool</CardTitle>
+          <CardDescription>
+            Join the office pool and submit one player pick per box before lock.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm text-foreground">
+          {!pool && <p>No office pool is configured yet.</p>}
+          {pool && (
+            <div className="rounded-md border border-border bg-muted/40 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="font-semibold text-foreground">{pool.name}</p>
+                <Badge className={locked ? "bg-destructive/15 text-destructive" : "bg-brand/15 text-brand"}>
+                  {locked ? "Locked" : "Open"}
+                </Badge>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              <p>Season: {pool.season.label}</p>
+              <p>
+                Entrants: {pool._count.entrants}
+                {pool.entrantLimit ? ` / ${pool.entrantLimit}` : ""}
+              </p>
+              <p>Boxes configured: {pool._count.boxes} / {pool.boxCount}</p>
+              <p>Status: {joined ? "Joined" : "Not joined"}</p>
+              <div className="mt-3">
+                <Link
+                  href={`/pools/${pool.id}`}
+                  className={cn(
+                    buttonVariants({ variant: "outline" }),
+                    "border-brand/40 text-brand hover:bg-brand/10",
+                  )}
+                >
+                  Open picks
+                </Link>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </section>
   );
 }

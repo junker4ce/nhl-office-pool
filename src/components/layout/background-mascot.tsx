@@ -4,18 +4,9 @@ import Image from "next/image";
 import { useSyncExternalStore } from "react";
 
 const MASCOTS = [
-  {
-    src: "/mascot/vee-goalie.webp",
-    alt: "Vee, the VitaOne mascot, making a butterfly save in goalie gear",
-  },
-  {
-    src: "/mascot/vee-celebrate.webp",
-    alt: "Vee, the VitaOne mascot, celebrating with a stick raised overhead",
-  },
-  {
-    src: "/mascot/vee-stickhandle.webp",
-    alt: "Vee, the VitaOne mascot, skating with the puck",
-  },
+  "/mascot/vee-goalie.webp",
+  "/mascot/vee-celebrate.webp",
+  "/mascot/vee-stickhandle.webp",
 ] as const;
 
 const STORAGE_KEY = "nhl-office-pool:mascot-index";
@@ -44,22 +35,24 @@ function getSessionMascotIndex() {
 
 const subscribe = () => () => {};
 
-export function PoolMascot() {
+export function BackgroundMascot() {
   const index = useSyncExternalStore(subscribe, getSessionMascotIndex, () => null);
   const mascot = index === null ? null : MASCOTS[index];
 
-  // Sits beside the content on tablet/laptop widths, then moves out into the
-  // empty left gutter once the viewport is wide enough to hold it.
+  // Decorative backdrop shared by every page: centred in the empty left gutter
+  // on wide screens, and a faint corner watermark behind content otherwise.
   return (
-    <div className="mx-auto aspect-square w-40 md:w-full 2xl:absolute 2xl:right-full 2xl:top-24 2xl:w-[min(26rem,calc((100vw-72rem)/2-2rem))]">
+    <div
+      aria-hidden="true"
+      className="pointer-events-none fixed bottom-0 left-0 -z-10 w-56 opacity-15 select-none sm:w-72 2xl:inset-y-0 2xl:flex 2xl:w-[calc((100vw-72rem)/2)] 2xl:items-center 2xl:justify-center 2xl:opacity-100"
+    >
       {mascot && (
         <Image
-          src={mascot.src}
-          alt={mascot.alt}
+          src={mascot}
+          alt=""
           width={600}
           height={600}
-          priority
-          className="h-auto w-full drop-shadow-xl"
+          className="h-auto w-full drop-shadow-xl 2xl:w-[min(26rem,calc(100%-2rem))]"
         />
       )}
     </div>

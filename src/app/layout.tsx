@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Bebas_Neue, Nunito_Sans } from "next/font/google";
 import "./globals.css";
 import { AppProviders } from "./providers";
+import { BackgroundMascot } from "@/components/layout/background-mascot";
 import { SiteHeader } from "@/components/layout/site-header";
 
 const bodyFont = Nunito_Sans({
@@ -27,8 +28,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${bodyFont.variable} ${headingFont.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
+      <body className="isolate min-h-full flex flex-col">
         <AppProviders>
+          <BackgroundMascot />
           <SiteHeader />
           <main className="flex-1">{children}</main>
         </AppProviders>
