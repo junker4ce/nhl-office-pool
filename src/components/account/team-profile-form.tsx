@@ -77,9 +77,9 @@ export function TeamProfileForm({ initialTeamName, initialTeamLogoData }: Props)
         <form onSubmit={onSubmit} className="grid gap-5 md:grid-cols-[1fr_auto]">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="dashboard-team-name">Team name</Label>
+              <Label htmlFor="account-team-name">Team name</Label>
               <Input
-                id="dashboard-team-name"
+                id="account-team-name"
                 value={teamName}
                 onChange={(event) => {
                   setTeamName(event.target.value);
@@ -91,9 +91,9 @@ export function TeamProfileForm({ initialTeamName, initialTeamLogoData }: Props)
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="dashboard-team-logo">Team logo</Label>
+              <Label htmlFor="account-team-logo">Team logo</Label>
               <Input
-                id="dashboard-team-logo"
+                id="account-team-logo"
                 type="file"
                 accept="image/png,image/jpeg,image/webp,image/gif"
                 onChange={(event) => void onLogoChange(event.target.files?.[0])}

@@ -9,7 +9,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { TeamProfileForm } from "@/components/dashboard/team-profile-form";
 
 type PoolSummary = {
   id: string;
@@ -33,8 +32,6 @@ type EntrantTeam = {
 type Props = {
   displayName: string;
   role: string;
-  teamName: string | null;
-  teamLogoData: string | null;
   pools: PoolSummary[];
   entrantTeams: EntrantTeam[];
 };
@@ -42,8 +39,6 @@ type Props = {
 export function DashboardOverview({
   displayName,
   role,
-  teamName,
-  teamLogoData,
   pools,
   entrantTeams,
 }: Props) {
@@ -89,8 +84,6 @@ export function DashboardOverview({
           </div>
         </CardContent>
       </Card>
-
-      <TeamProfileForm initialTeamName={teamName} initialTeamLogoData={teamLogoData} />
 
       <Card className="border-brand/20 bg-card">
         <CardHeader>

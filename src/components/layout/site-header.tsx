@@ -50,6 +50,12 @@ export async function SiteHeader() {
               >
                 Dashboard
               </Link>
+              <Link
+                href="/account"
+                className={cn(buttonVariants({ variant: "ghost" }), "text-foreground hover:bg-muted")}
+              >
+                Account
+              </Link>
               {session.user.role === "ADMIN" && (
                 <Link
                   href="/admin"

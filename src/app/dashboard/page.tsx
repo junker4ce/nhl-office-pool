@@ -11,28 +11,22 @@ export default async function DashboardPage() {
     redirect("/auth/login?callbackUrl=/dashboard");
   }
 
-  const [user, pool] = await Promise.all([
-    db.user.findUniqueOrThrow({
-      where: { id: session.user.id },
-      select: { teamName: true, teamLogoData: true },
-    }),
-    db.pool.findFirst({
-      include: {
-        season: true,
-        entrants: {
-          where: {
-            userId: session.user.id,
-          },
-          select: {
-            id: true,
-          },
+  const pool = await db.pool.findFirst({
+    include: {
+      season: true,
+      entrants: {
+        where: {
+          userId: session.user.id,
+        },
+        select: {
+          id: true,
         },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
-    }),
-  ]);
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 
   const now = new Date();
   const pools = pool
@@ -86,8 +80,6 @@ export default async function DashboardPage() {
       <DashboardOverview
         displayName={session.user.name ?? "Player"}
         role={session.user.role ?? "USER"}
-        teamName={user.teamName}
-        teamLogoData={user.teamLogoData}
         pools={pools}
         entrantTeams={entrantTeams}
       />
