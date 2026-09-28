@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Moon, Sun } from "lucide-react";
+import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 
@@ -36,10 +36,7 @@ export function ModeToggle() {
       ) : theme === "dark" ? (
         <Moon className="size-4" />
       ) : (
-        <span className="relative flex size-4 items-center justify-center">
-          <Sun className="size-4 dark:hidden" />
-          <Moon className="hidden size-4 dark:block" />
-        </span>
+        <Monitor className="size-4" />
       )}
     </Button>
   );
