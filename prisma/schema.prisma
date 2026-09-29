@@ -106,6 +106,7 @@ model PoolBoxPlayerOption {
   poolId     String
   poolBoxId  String
   playerId   String
+  sortOrder  Int      @default(0)
   createdAt  DateTime @default(now())
   pool       Pool     @relation(fields: [poolId], references: [id], onDelete: Cascade)
   poolBox    PoolBox  @relation(fields: [poolBoxId], references: [id], onDelete: Cascade)

@@ -48,9 +48,7 @@ export default async function PoolDetailPage({ params }: Props) {
                 },
               },
             },
-            orderBy: {
-              createdAt: "asc",
-            },
+            orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
           },
         },
       },

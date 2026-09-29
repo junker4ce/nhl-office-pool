@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Pool, Season, Team } from "@prisma/client";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -67,6 +68,7 @@ export function PoolBoxSetup({ pools }: Props) {
   const [playerForm, setPlayerForm] = useState(emptyPlayerForm);
   const [activeBoxId, setActiveBoxId] = useState<string>("");
   const [addingPlayerId, setAddingPlayerId] = useState<string | null>(null);
+  const [reorderingBoxId, setReorderingBoxId] = useState<string | null>(null);
 
   const selectedPool = useMemo(
     () => pools.find((pool) => pool.id === selectedPoolId) ?? null,
@@ -231,6 +233,41 @@ export function PoolBoxSetup({ pools }: Props) {
     }
 
     setMessage("Player option removed.");
+  }
+
+  async function moveOption(boxId: string, index: number, direction: -1 | 1) {
+    if (!selectedPoolId || !poolData) return;
+
+    const box = poolData.boxes.find((candidate) => candidate.id === boxId);
+    const targetIndex = index + direction;
+    if (!box || targetIndex < 0 || targetIndex >= box.playerOptions.length) return;
+
+    const previousPoolData = poolData;
+    const reordered = [...box.playerOptions];
+    [reordered[index], reordered[targetIndex]] = [reordered[targetIndex], reordered[index]];
+
+    setMessage(null);
+    setReorderingBoxId(boxId);
+    setPoolData({
+      ...poolData,
+      boxes: poolData.boxes.map((candidate) =>
+        candidate.id === boxId ? { ...candidate, playerOptions: reordered } : candidate,
+      ),
+    });
+
+    const response = await fetch(`/api/admin/pools/${selectedPoolId}/boxes/${boxId}/options`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ optionIds: reordered.map((option) => option.id) }),
+    });
+
+    setReorderingBoxId(null);
+
+    if (!response.ok) {
+      const data = (await response.json().catch(() => null)) as { error?: string } | null;
+      setPoolData(previousPoolData);
+      setMessage(data?.error ?? "Could not reorder player options.");
+    }
   }
 
   async function savePlayer() {
@@ -473,20 +510,43 @@ export function PoolBoxSetup({ pools }: Props) {
                   {box.playerOptions.length === 0 && (
                     <p className="text-xs text-muted-foreground">No options yet.</p>
                   )}
-                  {box.playerOptions.map((option) => (
-                    <div key={option.id} className="flex items-center justify-between rounded-md border border-border bg-muted/60 p-2">
+                  {box.playerOptions.map((option, index) => (
+                    <div key={option.id} className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/60 p-2">
                       <p className="text-sm text-foreground">
+                        <span className="mr-1 text-muted-foreground">{index + 1}.</span>
                         {option.player.firstName} {option.player.lastName} ({option.player.position})
                       </p>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:bg-destructive/10"
-                        onClick={() => void deleteOption(box.id, option.id)}
-                      >
-                        Remove
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={`Move ${option.player.firstName} ${option.player.lastName} up`}
+                          disabled={index === 0 || reorderingBoxId === box.id}
+                          onClick={() => void moveOption(box.id, index, -1)}
+                        >
+                          <ArrowUp />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={`Move ${option.player.firstName} ${option.player.lastName} down`}
+                          disabled={index === box.playerOptions.length - 1 || reorderingBoxId === box.id}
+                          onClick={() => void moveOption(box.id, index, 1)}
+                        >
+                          <ArrowDown />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:bg-destructive/10"
+                          onClick={() => void deleteOption(box.id, option.id)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>

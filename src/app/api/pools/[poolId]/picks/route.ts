@@ -55,9 +55,7 @@ export async function GET(_: Request, { params }: Params) {
                 },
               },
             },
-            orderBy: {
-              createdAt: "asc",
-            },
+            orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
           },
         },
       },
