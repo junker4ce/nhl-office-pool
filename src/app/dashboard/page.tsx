@@ -20,6 +20,9 @@ export default async function DashboardPage() {
         },
         select: {
           id: true,
+          _count: {
+            select: { picks: true },
+          },
         },
       },
     },
@@ -38,6 +41,7 @@ export default async function DashboardPage() {
           joined: pool.entrants.length > 0,
           locked: pool.isLocked || (pool.lockAt ? pool.lockAt.getTime() <= now.getTime() : false),
           boxCount: pool.boxCount,
+          picksMade: pool.entrants[0]?._count.picks ?? 0,
         },
       ]
     : [];

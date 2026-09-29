@@ -17,6 +17,7 @@ type PoolSummary = {
   joined: boolean;
   locked: boolean;
   boxCount: number;
+  picksMade: number;
 };
 
 type EntrantTeam = {
@@ -98,39 +99,53 @@ export function DashboardOverview({
               You have not joined the office pool yet.
             </p>
           )}
-          {pools.map((pool) => (
-            <div
-              key={pool.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 p-3"
-            >
-              <div>
-                <p className="font-semibold text-foreground">{pool.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {pool.seasonLabel} • {pool.boxCount} boxes
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge
-                  className={
-                    pool.locked
-                      ? "bg-destructive/15 text-destructive"
-                      : "bg-brand/15 text-brand"
-                  }
-                >
-                  {pool.locked ? "Locked" : "Open"}
-                </Badge>
-                <Link
-                  href={`/pools/${pool.id}`}
-                  className={cn(
-                    buttonVariants({ variant: "outline" }),
-                    "border-brand/40 text-brand hover:bg-brand/10"
+          {pools.map((pool) => {
+            const missingPicks =
+              pool.joined && !pool.locked ? Math.max(pool.boxCount - pool.picksMade, 0) : 0;
+            return (
+              <div
+                key={pool.id}
+                className={cn(
+                  "flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/40 p-3",
+                  missingPicks > 0 ? "border-amber-500/60" : "border-border"
+                )}
+              >
+                <div>
+                  <p className="font-semibold text-foreground">{pool.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {pool.seasonLabel} • {pool.boxCount} boxes
+                  </p>
+                  {missingPicks > 0 && (
+                    <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
+                      {missingPicks === 1
+                        ? "1 box needs a pick."
+                        : `${missingPicks} boxes need a pick.`}
+                    </p>
                   )}
-                >
-                  Open
-                </Link>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    className={
+                      pool.locked
+                        ? "bg-destructive/15 text-destructive"
+                        : "bg-brand/15 text-brand"
+                    }
+                  >
+                    {pool.locked ? "Locked" : "Open"}
+                  </Badge>
+                  <Link
+                    href={`/pools/${pool.id}`}
+                    className={cn(
+                      buttonVariants({ variant: "outline" }),
+                      "border-brand/40 text-brand hover:bg-brand/10"
+                    )}
+                  >
+                    {missingPicks > 0 ? "Finish picks" : "Open"}
+                  </Link>
+                </div>
               </div>
-            </div>
-          ))}
+              );
+          })}
         </CardContent>
       </Card>
 

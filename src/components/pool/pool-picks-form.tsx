@@ -55,6 +55,16 @@ export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLo
     [selectedByBoxId],
   );
 
+  // A returning entrant can be missing picks when an admin removes a player they had chosen.
+  const missingBoxes = useMemo(
+    () =>
+      entrant && !locked
+        ? pool.boxes.filter((box) => box.playerOptions.length > 0 && !selectedByBoxId[box.id])
+        : [],
+    [entrant, locked, pool.boxes, selectedByBoxId],
+  );
+  const missingBoxIds = useMemo(() => new Set(missingBoxes.map((box) => box.id)), [missingBoxes]);
+
   async function refreshData() {
     const response = await fetch(`/api/pools/${pool.id}/picks`);
 
@@ -150,6 +160,28 @@ export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLo
             </p>
           )}
           {!entrant && locked && <p>Pool is locked and can no longer be joined.</p>}
+          {missingBoxes.length > 0 && (
+            <div className="rounded-md border border-amber-500/50 bg-amber-500/10 p-3 text-amber-700 dark:text-amber-300">
+              <p className="font-semibold">
+                {missingBoxes.length === 1 ? "1 box needs a pick" : `${missingBoxes.length} boxes need a pick`}
+              </p>
+              <p className="mt-1 text-amber-700/90 dark:text-amber-300/90">
+                A player you picked may have been removed from the pool. Choose a replacement and save your picks.
+              </p>
+              <ul className="mt-2 flex flex-wrap gap-2">
+                {missingBoxes.map((box) => (
+                  <li key={box.id}>
+                    <a
+                      href={`#box-${box.id}`}
+                      className="inline-block rounded-full border border-amber-500/50 px-2 py-0.5 text-xs font-medium hover:bg-amber-500/15"
+                    >
+                      Box {box.boxOrder}: {box.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -171,11 +203,22 @@ export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLo
       </Card>
 
       {pool.boxes.map((box) => (
-        <Card key={box.id} className="border-brand/20 bg-card">
+        <Card
+          key={box.id}
+          id={`box-${box.id}`}
+          className={`scroll-mt-6 bg-card ${
+            missingBoxIds.has(box.id) ? "border-amber-500/70 ring-2 ring-amber-500/40" : "border-brand/20"
+          }`}
+        >
           <CardHeader>
-            <CardTitle>
-              Box {box.boxOrder}: {box.title}
-            </CardTitle>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle>
+                Box {box.boxOrder}: {box.title}
+              </CardTitle>
+              {missingBoxIds.has(box.id) && (
+                <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300">Needs a pick</Badge>
+              )}
+            </div>
             {box.description && <CardDescription>{box.description}</CardDescription>}
           </CardHeader>
           <CardContent className="space-y-2">

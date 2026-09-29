@@ -54,11 +54,22 @@ const emptyPlayerForm = {
   position: "",
 };
 
+function pickedOptionConfirmMessage(pickCount: number) {
+  const single = pickCount === 1;
+  return (
+    `This player has been picked by ${pickCount} ${single ? "entrant" : "entrants"}. ` +
+    `Removing them will also delete ${single ? "that pick" : "those picks"}, ` +
+    `leaving ${single ? "that entrant" : "those entrants"} without a pick in this box.\n\n` +
+    "Remove anyway?"
+  );
+}
+
 export function PoolBoxSetup({ pools }: Props) {
   const [selectedPoolId, setSelectedPoolId] = useState<string>(pools[0]?.id ?? "");
   const [poolData, setPoolData] = useState<PoolBoxResponse["pool"] | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [boxError, setBoxError] = useState<{ boxId: string; message: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<PlayerWithTeam[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -216,15 +227,26 @@ export function PoolBoxSetup({ pools }: Props) {
   async function deleteOption(boxId: string, optionId: string) {
     if (!selectedPoolId) return;
 
-    const response = await fetch(
-      `/api/admin/pools/${selectedPoolId}/boxes/${boxId}/options/${optionId}`,
-      { method: "DELETE" },
-    );
+    const url = `/api/admin/pools/${selectedPoolId}/boxes/${boxId}/options/${optionId}`;
+    let response = await fetch(url, { method: "DELETE" });
+
+    if (response.status === 409) {
+      const data = (await response.json().catch(() => null)) as { pickCount?: number } | null;
+      const pickCount = data?.pickCount ?? 0;
+      if (!window.confirm(pickedOptionConfirmMessage(pickCount))) return;
+
+      response = await fetch(`${url}?force=true`, { method: "DELETE" });
+    }
 
     if (!response.ok) {
-      setMessage("Could not remove player option.");
+      const data = (await response.json().catch(() => null)) as { error?: string } | null;
+      setBoxError({ boxId, message: data?.error ?? "Could not remove player option." });
       return;
     }
+
+    const result = (await response.json().catch(() => null)) as { removedPickCount?: number } | null;
+    const removedPickCount = result?.removedPickCount ?? 0;
+    setBoxError(null);
 
     const refresh = await fetch(`/api/admin/pools/${selectedPoolId}/boxes`);
     if (refresh.ok) {
@@ -232,7 +254,12 @@ export function PoolBoxSetup({ pools }: Props) {
       setPoolData(data.pool);
     }
 
-    setMessage("Player option removed.");
+    if (removedPickCount > 0) {
+      const pickLabel = removedPickCount === 1 ? "pick" : "picks";
+      setMessage(`Player option removed along with ${removedPickCount} ${pickLabel}.`);
+    } else {
+      setMessage("Player option removed.");
+    }
   }
 
   async function moveOption(boxId: string, index: number, direction: -1 | 1) {
@@ -550,6 +577,10 @@ export function PoolBoxSetup({ pools }: Props) {
                     </div>
                   ))}
                 </div>
+
+                {boxError?.boxId === box.id && (
+                  <p className="text-sm text-destructive">{boxError.message}</p>
+                )}
               </div>
             ))}
         </div>
