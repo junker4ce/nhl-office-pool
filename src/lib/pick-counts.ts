@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 
 export async function getPoolPickCounts(poolId: string) {
-  const [pool, counts, entrantCount] = await Promise.all([
+  const [pool, picks, entrantCount] = await Promise.all([
     db.pool.findUnique({
       where: { id: poolId },
       include: {
@@ -20,10 +20,17 @@ export async function getPoolPickCounts(poolId: string) {
         },
       },
     }),
-    db.entrantPick.groupBy({
-      by: ["playerOptionId"],
+    db.entrantPick.findMany({
       where: { poolBox: { poolId } },
-      _count: { _all: true },
+      select: {
+        playerOptionId: true,
+        poolEntrant: {
+          select: {
+            id: true,
+            user: { select: { teamName: true, displayName: true } },
+          },
+        },
+      },
     }),
     db.poolEntrant.count({ where: { poolId } }),
   ]);
@@ -32,17 +39,31 @@ export async function getPoolPickCounts(poolId: string) {
     return null;
   }
 
-  const countByOptionId = new Map(
-    counts.map((row) => [row.playerOptionId, row._count._all]),
-  );
+  const pickersByOptionId = new Map<string, Array<{ entrantId: string; teamName: string }>>();
+
+  for (const pick of picks) {
+    const pickers = pickersByOptionId.get(pick.playerOptionId) ?? [];
+    pickers.push({
+      entrantId: pick.poolEntrant.id,
+      teamName: pick.poolEntrant.user.teamName ?? pick.poolEntrant.user.displayName,
+    });
+    pickersByOptionId.set(pick.playerOptionId, pickers);
+  }
 
   const boxes = pool.boxes.map((box) => {
     const options = box.playerOptions
-      .map((option) => ({
-        id: option.id,
-        player: option.player,
-        pickCount: countByOptionId.get(option.id) ?? 0,
-      }))
+      .map((option) => {
+        const pickers = (pickersByOptionId.get(option.id) ?? []).sort((a, b) =>
+          a.teamName.localeCompare(b.teamName),
+        );
+
+        return {
+          id: option.id,
+          player: option.player,
+          pickCount: pickers.length,
+          pickers,
+        };
+      })
       .sort(
         (a, b) =>
           b.pickCount - a.pickCount ||

@@ -1,3 +1,8 @@
+"use client";
+
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { PoolPickCounts } from "@/lib/pick-counts";
 
@@ -6,6 +11,20 @@ type Props = {
 };
 
 export function PickCounts({ data }: Props) {
+  const [expandedOptionIds, setExpandedOptionIds] = useState<Set<string>>(() => new Set());
+
+  function togglePickers(optionId: string) {
+    setExpandedOptionIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(optionId)) {
+        next.delete(optionId);
+      } else {
+        next.add(optionId);
+      }
+      return next;
+    });
+  }
+
   return (
     <div className="space-y-5">
       <Card className="border-brand/20 bg-card">
@@ -43,6 +62,8 @@ export function PickCounts({ data }: Props) {
               const share = box.totalPicks > 0 ? option.pickCount / box.totalPicks : 0;
               const percent = Math.round(share * 100);
               const barColor = option.player.team?.primaryColorHex ?? "#22D3EE";
+              const expanded = expandedOptionIds.has(option.id);
+              const pickersListId = `pickers-${option.id}`;
 
               return (
                 <div
@@ -68,6 +89,19 @@ export function PickCounts({ data }: Props) {
                         <span className="font-semibold text-foreground">{option.pickCount}</span>
                         {" "}
                         ({percent}%)
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          className="ml-1 align-middle"
+                          disabled={option.pickCount === 0}
+                          aria-expanded={expanded}
+                          aria-controls={pickersListId}
+                          aria-label={`${expanded ? "Hide" : "Show"} teams that picked ${option.player.firstName} ${option.player.lastName}`}
+                          onClick={() => togglePickers(option.id)}
+                        >
+                          <ChevronDown className={`transition-transform ${expanded ? "rotate-180" : ""}`} />
+                        </Button>
                       </span>
                     </div>
                     <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
@@ -76,6 +110,18 @@ export function PickCounts({ data }: Props) {
                         style={{ width: `${share * 100}%`, backgroundColor: barColor }}
                       />
                     </div>
+                    {expanded && option.pickers.length > 0 && (
+                      <ul id={pickersListId} className="flex flex-wrap gap-1 pt-1">
+                        {option.pickers.map((picker) => (
+                          <li
+                            key={picker.entrantId}
+                            className="rounded-full border border-border bg-background px-2 py-0.5 text-xs"
+                          >
+                            {picker.teamName}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
               );
