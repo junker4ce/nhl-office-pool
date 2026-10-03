@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PickCounts } from "@/components/pool/pick-counts";
+import { PickCounts, type PickComparison } from "@/components/pool/pick-counts";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -47,6 +47,7 @@ type Props = {
   entrantTeams: EntrantTeam[];
   view: DashboardView;
   pickCounts: PoolPickCounts | null;
+  pickComparison: PickComparison | null;
 };
 
 export function DashboardOverview({
@@ -56,6 +57,7 @@ export function DashboardOverview({
   entrantTeams,
   view,
   pickCounts,
+  pickComparison,
 }: Props) {
   const currentPool = pools[0] ?? null;
   const joined = currentPool ? currentPool.joined : false;
@@ -191,7 +193,7 @@ export function DashboardOverview({
       )}
 
       {view === "pick-counts" && pickCounts ? (
-        <PickCounts data={pickCounts} showPickers={false} />
+        <PickCounts data={pickCounts} showPickers={false} comparison={pickComparison} />
       ) : (
         <Card className="border-brand/20 bg-card">
           <CardHeader>

@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { getPoolPickCounts } from "@/lib/pick-counts";
 
 type Props = {
-  searchParams: Promise<{ view?: string }>;
+  searchParams: Promise<{ view?: string; compare?: string }>;
 };
 
 export default async function Home({ searchParams }: Props) {
@@ -100,7 +100,7 @@ export default async function Home({ searchParams }: Props) {
         .sort((a, b) => b.points - a.points || a.teamName.localeCompare(b.teamName))
     : [];
 
-  const { view: requestedView } = await searchParams;
+  const { view: requestedView, compare } = await searchParams;
   const poolLocked = pools[0]?.locked ?? false;
   // Other views reveal everyone's picks, so they only open up once the pool is locked.
   const view = poolLocked && requestedView === "pick-counts" ? "pick-counts" : "standings";
@@ -108,6 +108,37 @@ export default async function Home({ searchParams }: Props) {
     pool && view === "pick-counts"
       ? await getPoolPickCounts(pool.id, { includePickers: false })
       : null;
+
+  const myEntrantId = pool?.entrants[0]?.id ?? null;
+  // Only teams in this pool can be compared against, and never yourself.
+  const compareTeam =
+    entrantTeams.find((entrant) => entrant.id === compare && entrant.id !== myEntrantId) ?? null;
+  let pickComparison = null;
+
+  if (pickCounts) {
+    const entrantIds = [myEntrantId, compareTeam?.id].filter((id): id is string => Boolean(id));
+    const picks = await db.entrantPick.findMany({
+      where: { poolEntrantId: { in: entrantIds } },
+      select: { poolEntrantId: true, playerOptionId: true },
+    });
+    const optionIdsFor = (entrantId: string) =>
+      picks.filter((pick) => pick.poolEntrantId === entrantId).map((pick) => pick.playerOptionId);
+
+    pickComparison = {
+      myOptionIds: myEntrantId ? optionIdsFor(myEntrantId) : [],
+      compareTeam: compareTeam
+        ? {
+            id: compareTeam.id,
+            teamName: compareTeam.teamName,
+            optionIds: optionIdsFor(compareTeam.id),
+          }
+        : null,
+      teams: entrantTeams
+        .filter((entrant) => entrant.id !== myEntrantId)
+        .map((entrant) => ({ id: entrant.id, teamName: entrant.teamName }))
+        .sort((a, b) => a.teamName.localeCompare(b.teamName)),
+    };
+  }
 
   return (
     <section className="mx-auto w-full max-w-6xl px-6 py-10 md:px-10">
@@ -118,6 +149,7 @@ export default async function Home({ searchParams }: Props) {
         entrantTeams={entrantTeams}
         view={view}
         pickCounts={pickCounts}
+        pickComparison={pickComparison}
       />
     </section>
   );
