@@ -52,6 +52,20 @@ export default async function DashboardPage() {
     year: "numeric",
   });
 
+  const pointsByEntrantId = new Map<string, number>();
+
+  if (pool) {
+    const totals = await db.scoreLedger.groupBy({
+      by: ["poolEntrantId"],
+      where: { poolEntrant: { poolId: pool.id } },
+      _sum: { points: true },
+    });
+
+    for (const total of totals) {
+      pointsByEntrantId.set(total.poolEntrantId, total._sum.points ?? 0);
+    }
+  }
+
   const entrantTeams = pool
     ? (
         await db.poolEntrant.findMany({
@@ -76,7 +90,9 @@ export default async function DashboardPage() {
         joinedLabel: dateFormatter.format(entrant.createdAt),
         picksMade: entrant._count.picks,
         boxCount: pool.boxCount,
+        points: pointsByEntrantId.get(entrant.id) ?? 0,
       }))
+        .sort((a, b) => b.points - a.points || a.teamName.localeCompare(b.teamName))
     : [];
 
   return (

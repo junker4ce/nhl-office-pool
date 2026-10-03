@@ -28,6 +28,7 @@ type EntrantTeam = {
   joinedLabel: string;
   picksMade: number;
   boxCount: number;
+  points: number;
 };
 
 type Props = {
@@ -153,7 +154,9 @@ export function DashboardOverview({
         <CardHeader>
           <CardTitle>Teams in the pool</CardTitle>
           <CardDescription>
-            Everyone who has joined the office pool so far.
+            {open
+              ? "Everyone who has joined the office pool so far."
+              : "Current standings, ranked by total points."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -162,14 +165,25 @@ export function DashboardOverview({
               No one has joined the office pool yet.
             </p>
           )}
-          {entrantTeams.map((entrant) => {
+          {entrantTeams.map((entrant, index) => {
             const picksComplete = entrant.picksMade >= entrant.boxCount;
+            // Tied teams share the rank of the first team with that score.
+            const rank =
+              entrantTeams.findIndex((other) => other.points === entrant.points) + 1;
+            const tied = entrantTeams.some(
+              (other, otherIndex) => otherIndex !== index && other.points === entrant.points
+            );
             return (
               <div
                 key={entrant.id}
                 className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-muted/40 p-3"
               >
                 <div className="flex items-center gap-3">
+                  {!open && (
+                    <span className="w-8 shrink-0 text-center font-heading text-xl text-brand">
+                      {tied ? `T${rank}` : rank}
+                    </span>
+                  )}
                   <div className="size-10 shrink-0 overflow-hidden rounded-full border border-brand/20 bg-muted/50">
                     {entrant.teamLogoData ? (
                       <img
@@ -190,15 +204,26 @@ export function DashboardOverview({
                     </p>
                   </div>
                 </div>
-                <Badge
-                  className={
-                    picksComplete
-                      ? "bg-brand/15 text-brand"
-                      : "bg-muted text-muted-foreground"
-                  }
-                >
-                  {entrant.picksMade}/{entrant.boxCount} picks
-                </Badge>
+                {open ? (
+                  <Badge
+                    className={
+                      picksComplete
+                        ? "bg-brand/15 text-brand"
+                        : "bg-muted text-muted-foreground"
+                    }
+                  >
+                    {entrant.picksMade}/{entrant.boxCount} picks
+                  </Badge>
+                ) : (
+                  <div className="text-right">
+                    <p className="text-2xl font-semibold leading-none text-foreground">
+                      {entrant.points}
+                    </p>
+                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                      {entrant.points === 1 ? "point" : "points"}
+                    </p>
+                  </div>
+                )}
               </div>
             );
           })}

@@ -393,7 +393,8 @@ export async function syncDailyPlayerStats(date: string) {
 
     const nhlIds = [...skaters, ...goalies].map((entry) => entry.playerId);
     const players = await db.player.findMany({
-      where: { nhlId: { in: nhlIds } },
+      // Only players offered in a pool box can score, so skip everyone else.
+      where: { nhlId: { in: nhlIds }, boxOptions: { some: {} } },
       select: { id: true, nhlId: true },
     });
     const playerIdByNhlId = new Map(players.map((player) => [player.nhlId, player.id]));
