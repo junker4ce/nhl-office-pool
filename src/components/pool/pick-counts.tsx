@@ -97,7 +97,7 @@ export function PickCounts({ data, showPickers = true, comparison = null }: Prop
   }
 
   return (
-    <div className="space-y-5">
+    <div className="@container space-y-5">
       <Card className="border-brand/20 bg-card">
         <CardHeader>
           <CardTitle className="font-heading text-4xl uppercase text-brand">
@@ -174,132 +174,134 @@ export function PickCounts({ data, showPickers = true, comparison = null }: Prop
         <p className="text-sm text-muted-foreground">No boxes configured for this pool yet.</p>
       )}
 
-      {data.boxes.map((box) => {
-        const owners = box.options.map((option) => ownerOf(option.id));
-        const samePick = owners.includes("both");
-        const bothPicked = samePick || (owners.includes("mine") && owners.includes("theirs"));
+      <div className="grid items-start gap-5 @4xl:grid-cols-2">
+        {data.boxes.map((box) => {
+          const owners = box.options.map((option) => ownerOf(option.id));
+          const samePick = owners.includes("both");
+          const bothPicked = samePick || (owners.includes("mine") && owners.includes("theirs"));
 
-        return (
-          <Card key={box.id} className="border-brand/20 bg-card">
-            <CardHeader>
-              <CardTitle className="flex flex-wrap items-center gap-2">
-                Box {box.boxOrder}: {box.title}
-                {compareTeam && bothPicked && (
-                  <span
-                    className={cn(
-                      "rounded-full px-2 py-0.5 text-xs font-medium",
-                      samePick
-                        ? "bg-brand/15 text-brand"
-                        : "bg-violet-500/15 text-violet-700 dark:text-violet-300"
-                    )}
-                  >
-                    {samePick ? "Same pick" : "Different picks"}
-                  </span>
+          return (
+            <Card key={box.id} className="border-brand/20 bg-card">
+              <CardHeader>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                  Box {box.boxOrder}: {box.title}
+                  {compareTeam && bothPicked && (
+                    <span
+                      className={cn(
+                        "rounded-full px-2 py-0.5 text-xs font-medium",
+                        samePick
+                          ? "bg-brand/15 text-brand"
+                          : "bg-violet-500/15 text-violet-700 dark:text-violet-300"
+                      )}
+                    >
+                      {samePick ? "Same pick" : "Different picks"}
+                    </span>
+                  )}
+                </CardTitle>
+                <CardDescription>
+                  {box.totalPicks} of {data.entrantCount} entrants picked this box
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {box.options.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No player options configured yet.</p>
                 )}
-              </CardTitle>
-              <CardDescription>
-                {box.totalPicks} of {data.entrantCount} entrants picked this box
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {box.options.length === 0 && (
-                <p className="text-sm text-muted-foreground">No player options configured yet.</p>
-              )}
 
-              {box.options.toSorted(SORTERS[sortKey]).map((option) => {
-                const share = box.totalPicks > 0 ? option.pickCount / box.totalPicks : 0;
-                const percent = Math.round(share * 100);
-                const barColor = option.player.team?.primaryColorHex ?? "#22D3EE";
-                const expanded = expandedOptionIds.has(option.id);
-                const pickersListId = `pickers-${option.id}`;
-                const owner = ownerOf(option.id);
+                {box.options.toSorted(SORTERS[sortKey]).map((option) => {
+                  const share = box.totalPicks > 0 ? option.pickCount / box.totalPicks : 0;
+                  const percent = Math.round(share * 100);
+                  const barColor = option.player.team?.primaryColorHex ?? "#22D3EE";
+                  const expanded = expandedOptionIds.has(option.id);
+                  const pickersListId = `pickers-${option.id}`;
+                  const owner = ownerOf(option.id);
 
-                return (
-                  <div
-                    key={option.id}
-                    className={cn(
-                      "relative flex items-center gap-3 overflow-hidden rounded-md border p-2 text-sm text-foreground",
-                      owner ? cn("pl-3.5", ROW_STYLES[owner]) : "border-border bg-muted/40"
-                    )}
-                  >
-                    {owner && <OwnerStripe owner={owner} />}
-                    {option.player.team?.logoUrl ? (
-                      <img
-                        src={option.player.team.logoUrl}
-                        alt={`${option.player.team.name} logo`}
-                        className="h-8 w-8 shrink-0 object-contain"
-                      />
-                    ) : (
-                      <span className="h-8 w-8 shrink-0" />
-                    )}
-
-                    <div className="min-w-0 flex-1 space-y-1">
-                      <div className="flex items-baseline justify-between gap-3">
-                        <span className="truncate font-semibold">
-                          {option.player.firstName} {option.player.lastName} ({option.player.position})
-                        </span>
-                        <span className="shrink-0 tabular-nums text-muted-foreground">
-                          <span className="font-semibold text-foreground">{option.pickCount}</span>
-                          {" "}
-                          ({percent}%)
-                          {showPickers && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon-xs"
-                              className="ml-1 align-middle"
-                              disabled={option.pickCount === 0}
-                              aria-expanded={expanded}
-                              aria-controls={pickersListId}
-                              aria-label={`${expanded ? "Hide" : "Show"} teams that picked ${option.player.firstName} ${option.player.lastName}`}
-                              onClick={() => togglePickers(option.id)}
-                            >
-                              <ChevronDown className={`transition-transform ${expanded ? "rotate-180" : ""}`} />
-                            </Button>
-                          )}
-                        </span>
-                      </div>
-                      {owner && (
-                        <div className="flex flex-wrap gap-1">
-                          <PickTag owner={owner} teamName={compareTeam?.teamName} />
-                        </div>
+                  return (
+                    <div
+                      key={option.id}
+                      className={cn(
+                        "relative flex items-center gap-3 overflow-hidden rounded-md border p-2 text-sm text-foreground",
+                        owner ? cn("pl-3.5", ROW_STYLES[owner]) : "border-border bg-muted/40"
                       )}
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                        <div
-                          className="h-full rounded-full"
-                          style={{ width: `${share * 100}%`, backgroundColor: barColor }}
+                    >
+                      {owner && <OwnerStripe owner={owner} />}
+                      {option.player.team?.logoUrl ? (
+                        <img
+                          src={option.player.team.logoUrl}
+                          alt={`${option.player.team.name} logo`}
+                          className="h-8 w-8 shrink-0 object-contain"
                         />
-                      </div>
-                      {expanded && option.pickers.length > 0 && (
-                        <ul id={pickersListId} className="flex flex-wrap gap-1 pt-1">
-                          {option.pickers.map((picker) => (
-                            <li
-                              key={picker.entrantId}
-                              className="rounded-full border border-border bg-background px-2 py-0.5 text-xs"
-                            >
-                              {picker.teamName}
-                            </li>
-                          ))}
-                        </ul>
+                      ) : (
+                        <span className="h-8 w-8 shrink-0" />
                       )}
-                    </div>
 
-                    <div className="w-14 shrink-0 text-right">
-                      <p className="text-xl font-semibold leading-none tabular-nums text-foreground">
-                        {option.stats.points}
-                      </p>
-                      <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
-                        {option.stats.points === 1 ? "pt" : "pts"}
-                      </p>
-                      <p className="text-xs tabular-nums text-muted-foreground">{statLine(option)}</p>
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="flex items-baseline justify-between gap-3">
+                          <span className="truncate font-semibold">
+                            {option.player.firstName} {option.player.lastName} ({option.player.position})
+                          </span>
+                          <span className="shrink-0 tabular-nums text-muted-foreground">
+                            <span className="font-semibold text-foreground">{option.pickCount}</span>
+                            {" "}
+                            ({percent}%)
+                            {showPickers && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-xs"
+                                className="ml-1 align-middle"
+                                disabled={option.pickCount === 0}
+                                aria-expanded={expanded}
+                                aria-controls={pickersListId}
+                                aria-label={`${expanded ? "Hide" : "Show"} teams that picked ${option.player.firstName} ${option.player.lastName}`}
+                                onClick={() => togglePickers(option.id)}
+                              >
+                                <ChevronDown className={`transition-transform ${expanded ? "rotate-180" : ""}`} />
+                              </Button>
+                            )}
+                          </span>
+                        </div>
+                        {owner && (
+                          <div className="flex flex-wrap gap-1">
+                            <PickTag owner={owner} teamName={compareTeam?.teamName} />
+                          </div>
+                        )}
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                          <div
+                            className="h-full rounded-full"
+                            style={{ width: `${share * 100}%`, backgroundColor: barColor }}
+                          />
+                        </div>
+                        {expanded && option.pickers.length > 0 && (
+                          <ul id={pickersListId} className="flex flex-wrap gap-1 pt-1">
+                            {option.pickers.map((picker) => (
+                              <li
+                                key={picker.entrantId}
+                                className="rounded-full border border-border bg-background px-2 py-0.5 text-xs"
+                              >
+                                {picker.teamName}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+
+                      <div className="w-14 shrink-0 text-right">
+                        <p className="text-xl font-semibold leading-none tabular-nums text-foreground">
+                          {option.stats.points}
+                        </p>
+                        <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                          {option.stats.points === 1 ? "pt" : "pts"}
+                        </p>
+                        <p className="text-xs tabular-nums text-muted-foreground">{statLine(option)}</p>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </CardContent>
-          </Card>
-        );
-      })}
+                  );
+                })}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }
