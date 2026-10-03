@@ -16,7 +16,7 @@ export type DashboardView = "standings" | "pick-counts";
 
 const VIEWS: Array<{ key: DashboardView; label: string; description: string }> = [
   { key: "standings", label: "Standings", description: "Every team, ranked by points" },
-  { key: "pick-counts", label: "Pick counts", description: "How often each player was picked" },
+  { key: "pick-counts", label: "Box breakdown", description: "Picks and points for every player" },
 ];
 
 type PoolSummary = {

@@ -22,6 +22,34 @@ type Props = {
 
 type PickOwner = "mine" | "theirs" | "both";
 
+type SortKey = "picks" | "points";
+
+type PlayerOption = PoolPickCounts["boxes"][number]["options"][number];
+
+const SORTS: Array<{ key: SortKey; label: string }> = [
+  { key: "picks", label: "Most picked" },
+  { key: "points", label: "Most points" },
+];
+
+const SORTERS: Record<SortKey, (a: PlayerOption, b: PlayerOption) => number> = {
+  picks: (a, b) =>
+    b.pickCount - a.pickCount ||
+    b.stats.points - a.stats.points ||
+    a.player.lastName.localeCompare(b.player.lastName),
+  points: (a, b) =>
+    b.stats.points - a.stats.points ||
+    b.pickCount - a.pickCount ||
+    a.player.lastName.localeCompare(b.player.lastName),
+};
+
+function statLine(option: PlayerOption) {
+  const { stats } = option;
+  if (option.player.position === "G") {
+    return `${stats.goalieWin}W ${stats.goalieShutout}SO`;
+  }
+  return `${stats.goals}G ${stats.assists}A`;
+}
+
 const ROW_STYLES: Record<PickOwner, string> = {
   mine: "border-brand/60 bg-brand/10",
   theirs: "border-violet-500/60 bg-violet-500/10",
@@ -32,6 +60,7 @@ export function PickCounts({ data, showPickers = true, comparison = null }: Prop
   const router = useRouter();
   const [comparing, startComparing] = useTransition();
   const [expandedOptionIds, setExpandedOptionIds] = useState<Set<string>>(() => new Set());
+  const [sortKey, setSortKey] = useState<SortKey>("picks");
 
   const myOptionIds = new Set(comparison?.myOptionIds ?? []);
   const compareTeam = comparison?.compareTeam ?? null;
@@ -72,33 +101,58 @@ export function PickCounts({ data, showPickers = true, comparison = null }: Prop
       <Card className="border-brand/20 bg-card">
         <CardHeader>
           <CardTitle className="font-heading text-4xl uppercase text-brand">
-            Pick Counts
+            Box Breakdown
           </CardTitle>
           <CardDescription>
             {data.name} - {data.seasonLabel} - {data.entrantCount}{" "}
             {data.entrantCount === 1 ? "entrant" : "entrants"}
           </CardDescription>
         </CardHeader>
-        {comparison && (
-          <CardContent className="space-y-3">
-            {comparison.teams.length > 0 && (
-              <label className="flex flex-wrap items-center gap-2 text-sm">
-                <span className="text-muted-foreground">Compare your picks with</span>
-                <select
-                  value={compareTeam?.id ?? ""}
-                  onChange={(event) => selectCompareTeam(event.target.value)}
-                  disabled={comparing}
-                  className="h-8 min-w-48 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Sort players by</span>
+            <div
+              role="group"
+              aria-label="Sort players"
+              className="inline-flex rounded-lg border border-border p-0.5"
+            >
+              {SORTS.map((sort) => (
+                <button
+                  key={sort.key}
+                  type="button"
+                  aria-pressed={sortKey === sort.key}
+                  onClick={() => setSortKey(sort.key)}
+                  className={cn(
+                    "rounded-md px-3 py-1 transition-colors",
+                    sortKey === sort.key
+                      ? "bg-brand/15 font-medium text-brand"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
                 >
-                  <option value="">No one</option>
-                  {comparison.teams.map((team) => (
-                    <option key={team.id} value={team.id}>
-                      {team.teamName}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
+                  {sort.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {comparison && comparison.teams.length > 0 && (
+            <label className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Compare your picks with</span>
+              <select
+                value={compareTeam?.id ?? ""}
+                onChange={(event) => selectCompareTeam(event.target.value)}
+                disabled={comparing}
+                className="h-8 min-w-48 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
+              >
+                <option value="">No one</option>
+                {comparison.teams.map((team) => (
+                  <option key={team.id} value={team.id}>
+                    {team.teamName}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          {comparison && (
             <div className="flex flex-wrap items-center gap-2">
               <PickTag owner="mine" />
               {compareTeam && (
@@ -112,8 +166,8 @@ export function PickCounts({ data, showPickers = true, comparison = null }: Prop
                 </>
               )}
             </div>
-          </CardContent>
-        )}
+          )}
+        </CardContent>
       </Card>
 
       {data.boxes.length === 0 && (
@@ -152,7 +206,7 @@ export function PickCounts({ data, showPickers = true, comparison = null }: Prop
                 <p className="text-sm text-muted-foreground">No player options configured yet.</p>
               )}
 
-              {box.options.map((option) => {
+              {box.options.toSorted(SORTERS[sortKey]).map((option) => {
                 const share = box.totalPicks > 0 ? option.pickCount / box.totalPicks : 0;
                 const percent = Math.round(share * 100);
                 const barColor = option.player.team?.primaryColorHex ?? "#22D3EE";
@@ -228,6 +282,16 @@ export function PickCounts({ data, showPickers = true, comparison = null }: Prop
                           ))}
                         </ul>
                       )}
+                    </div>
+
+                    <div className="w-14 shrink-0 text-right">
+                      <p className="text-xl font-semibold leading-none tabular-nums text-foreground">
+                        {option.stats.points}
+                      </p>
+                      <p className="mt-1 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                        {option.stats.points === 1 ? "pt" : "pts"}
+                      </p>
+                      <p className="text-xs tabular-nums text-muted-foreground">{statLine(option)}</p>
                     </div>
                   </div>
                 );

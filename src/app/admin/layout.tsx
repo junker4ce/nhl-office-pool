@@ -27,7 +27,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
             Overview
           </Link>
           <Link className="block rounded-md px-3 py-2 hover:bg-muted" href="/admin/pick-counts">
-            Pick counts
+            Box breakdown
           </Link>
         </nav>
       </aside>

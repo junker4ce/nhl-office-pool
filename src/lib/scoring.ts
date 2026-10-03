@@ -8,6 +8,20 @@ const SCORING = {
   goalieShutout: 3,
 } as const;
 
+export function pointsForStats(stats: {
+  goals: number;
+  assists: number;
+  goalieWin: number;
+  goalieShutout: number;
+}) {
+  return (
+    stats.goals * SCORING.goal +
+    stats.assists * SCORING.assist +
+    stats.goalieWin * SCORING.goalieWin +
+    stats.goalieShutout * SCORING.goalieShutout
+  );
+}
+
 function getDefaultSyncDate() {
   const date = new Date();
   date.setUTCDate(date.getUTCDate() - 1);
@@ -32,11 +46,7 @@ export async function computeScoreLedgerForDate(date: string) {
   const pointsByPlayerId = new Map<string, number>();
 
   for (const stat of stats) {
-    const points =
-      stat.goals * SCORING.goal +
-      stat.assists * SCORING.assist +
-      stat.goalieWin * SCORING.goalieWin +
-      stat.goalieShutout * SCORING.goalieShutout;
+    const points = pointsForStats(stat);
 
     pointsByPlayerId.set(stat.playerId, (pointsByPlayerId.get(stat.playerId) ?? 0) + points);
   }
