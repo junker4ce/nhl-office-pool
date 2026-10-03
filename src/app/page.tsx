@@ -1,77 +1,124 @@
-import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { FeatureShowcase } from "@/components/landing/feature-showcase";
+import { DashboardOverview } from "@/components/dashboard/dashboard-overview";
+import { LandingHero } from "@/components/landing/landing-hero";
 import { authOptions } from "@/lib/auth";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { db } from "@/lib/db";
+import { getPoolPickCounts } from "@/lib/pick-counts";
 
-export default async function Home() {
+type Props = {
+  searchParams: Promise<{ view?: string }>;
+};
+
+export default async function Home({ searchParams }: Props) {
   const session = await getServerSession(authOptions);
 
-  return (
-    <section className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-16 md:px-10">
-      <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="space-y-7">
-          <span className="inline-flex rounded-full border border-brand/25 bg-brand/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-brand">
-            2026 Season MVP
-          </span>
-          <h1 className="font-heading text-6xl uppercase leading-[0.9] text-brand md:text-8xl">
-            NHL Office Pool
-          </h1>
-          <p className="max-w-xl text-lg text-foreground/90">
-            Run a full-season player box pool with account sign-up, admin management,
-            and automatic scoring from public NHL APIs.
-          </p>
-          <div className="flex flex-wrap gap-3">
-            {!session && (
-              <>
-                <Link
-                  href="/auth/signup"
-                  className={cn(
-                    buttonVariants(),
-                    "bg-brand text-brand-foreground hover:bg-brand/90",
-                  )}
-                >
-                  Create account
-                </Link>
-                <Link
-                  href="/auth/login"
-                  className={cn(
-                    buttonVariants({ variant: "outline" }),
-                    "border-brand/40 text-brand hover:bg-brand/15",
-                  )}
-                >
-                  Log in
-                </Link>
-              </>
-            )}
-            {session && (
-              <>
-                <Link
-                  href="/pools"
-                  className={cn(
-                    buttonVariants(),
-                    "bg-brand text-brand-foreground hover:bg-brand/90",
-                  )}
-                >
-                  Open office pool
-                </Link>
-                <Link
-                  href="/dashboard"
-                  className={cn(
-                    buttonVariants({ variant: "outline" }),
-                    "border-brand/40 text-brand hover:bg-brand/15",
-                  )}
-                >
-                  My dashboard
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
+  if (!session?.user) {
+    return <LandingHero />;
+  }
 
-        <FeatureShowcase />
-      </div>
+  const pool = await db.pool.findFirst({
+    include: {
+      season: true,
+      entrants: {
+        where: {
+          userId: session.user.id,
+        },
+        select: {
+          id: true,
+          _count: {
+            select: { picks: true },
+          },
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  const now = new Date();
+  const pools = pool
+    ? [
+        {
+          id: pool.id,
+          name: pool.name,
+          seasonLabel: pool.season.label,
+          joined: pool.entrants.length > 0,
+          locked: pool.isLocked || (pool.lockAt ? pool.lockAt.getTime() <= now.getTime() : false),
+          boxCount: pool.boxCount,
+          picksMade: pool.entrants[0]?._count.picks ?? 0,
+        },
+      ]
+    : [];
+
+  const dateFormatter = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  const pointsByEntrantId = new Map<string, number>();
+
+  if (pool) {
+    const totals = await db.scoreLedger.groupBy({
+      by: ["poolEntrantId"],
+      where: { poolEntrant: { poolId: pool.id } },
+      _sum: { points: true },
+    });
+
+    for (const total of totals) {
+      pointsByEntrantId.set(total.poolEntrantId, total._sum.points ?? 0);
+    }
+  }
+
+  const entrantTeams = pool
+    ? (
+        await db.poolEntrant.findMany({
+          where: { poolId: pool.id },
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            createdAt: true,
+            user: {
+              select: { teamName: true, teamLogoData: true, displayName: true, fullName: true },
+            },
+            _count: {
+              select: { picks: true },
+            },
+          },
+        })
+      ).map((entrant) => ({
+        id: entrant.id,
+        teamName: entrant.user.teamName ?? entrant.user.displayName,
+        ownerName: entrant.user.fullName ?? entrant.user.displayName,
+        teamLogoData: entrant.user.teamLogoData,
+        joinedLabel: dateFormatter.format(entrant.createdAt),
+        picksMade: entrant._count.picks,
+        boxCount: pool.boxCount,
+        points: pointsByEntrantId.get(entrant.id) ?? 0,
+      }))
+        .sort((a, b) => b.points - a.points || a.teamName.localeCompare(b.teamName))
+    : [];
+
+  const { view: requestedView } = await searchParams;
+  const poolLocked = pools[0]?.locked ?? false;
+  // Other views reveal everyone's picks, so they only open up once the pool is locked.
+  const view = poolLocked && requestedView === "pick-counts" ? "pick-counts" : "standings";
+  const pickCounts =
+    pool && view === "pick-counts"
+      ? await getPoolPickCounts(pool.id, { includePickers: false })
+      : null;
+
+  return (
+    <section className="mx-auto w-full max-w-6xl px-6 py-10 md:px-10">
+      <DashboardOverview
+        displayName={session.user.name ?? "Player"}
+        role={session.user.role ?? "USER"}
+        pools={pools}
+        entrantTeams={entrantTeams}
+        view={view}
+        pickCounts={pickCounts}
+      />
     </section>
   );
 }

@@ -1,6 +1,11 @@
 import { db } from "@/lib/db";
 
-export async function getPoolPickCounts(poolId: string) {
+type Options = {
+  // Who picked each player is admin-only; leave it out so it never reaches other users.
+  includePickers?: boolean;
+};
+
+export async function getPoolPickCounts(poolId: string, { includePickers = true }: Options = {}) {
   const [pool, picks, entrantCount] = await Promise.all([
     db.pool.findUnique({
       where: { id: poolId },
@@ -61,7 +66,7 @@ export async function getPoolPickCounts(poolId: string) {
           id: option.id,
           player: option.player,
           pickCount: pickers.length,
-          pickers,
+          pickers: includePickers ? pickers : [],
         };
       })
       .sort(

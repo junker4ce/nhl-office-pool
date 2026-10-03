@@ -45,7 +45,7 @@ export async function SiteHeader() {
                 Pool
               </Link>
               <Link
-                href="/dashboard"
+                href="/"
                 className={cn(buttonVariants({ variant: "ghost" }), "text-foreground hover:bg-muted")}
               >
                 Dashboard

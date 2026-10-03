@@ -15,7 +15,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   if (session.user.role !== "ADMIN") {
-    redirect("/dashboard");
+    redirect("/");
   }
 
   return (

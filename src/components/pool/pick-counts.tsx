@@ -8,9 +8,10 @@ import type { PoolPickCounts } from "@/lib/pick-counts";
 
 type Props = {
   data: PoolPickCounts;
+  showPickers?: boolean;
 };
 
-export function PickCounts({ data }: Props) {
+export function PickCounts({ data, showPickers = true }: Props) {
   const [expandedOptionIds, setExpandedOptionIds] = useState<Set<string>>(() => new Set());
 
   function togglePickers(optionId: string) {
@@ -89,19 +90,21 @@ export function PickCounts({ data }: Props) {
                         <span className="font-semibold text-foreground">{option.pickCount}</span>
                         {" "}
                         ({percent}%)
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-xs"
-                          className="ml-1 align-middle"
-                          disabled={option.pickCount === 0}
-                          aria-expanded={expanded}
-                          aria-controls={pickersListId}
-                          aria-label={`${expanded ? "Hide" : "Show"} teams that picked ${option.player.firstName} ${option.player.lastName}`}
-                          onClick={() => togglePickers(option.id)}
-                        >
-                          <ChevronDown className={`transition-transform ${expanded ? "rotate-180" : ""}`} />
-                        </Button>
+                        {showPickers && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-xs"
+                            className="ml-1 align-middle"
+                            disabled={option.pickCount === 0}
+                            aria-expanded={expanded}
+                            aria-controls={pickersListId}
+                            aria-label={`${expanded ? "Hide" : "Show"} teams that picked ${option.player.firstName} ${option.player.lastName}`}
+                            onClick={() => togglePickers(option.id)}
+                          >
+                            <ChevronDown className={`transition-transform ${expanded ? "rotate-180" : ""}`} />
+                          </Button>
+                        )}
                       </span>
                     </div>
                     <div className="h-2 w-full overflow-hidden rounded-full bg-muted">

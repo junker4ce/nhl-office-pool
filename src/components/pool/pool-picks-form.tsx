@@ -130,7 +130,7 @@ export function PoolPicksForm({ pool, entrant: initialEntrant, locked: initialLo
     );
     setRedirecting(true);
     setTimeout(() => {
-      router.push("/dashboard");
+      router.push("/");
     }, 1000);
   }
 
