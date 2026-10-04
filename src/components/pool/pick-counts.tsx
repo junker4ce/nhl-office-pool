@@ -141,7 +141,7 @@ export function PickCounts({ data, showPickers = true, comparison = null }: Prop
                 value={compareTeam?.id ?? ""}
                 onChange={(event) => selectCompareTeam(event.target.value)}
                 disabled={comparing}
-                className="h-8 min-w-48 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
+                className="h-8 min-w-48 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30 [&_option]:bg-popover [&_option]:text-popover-foreground"
               >
                 <option value="">No one</option>
                 {comparison.teams.map((team) => (
