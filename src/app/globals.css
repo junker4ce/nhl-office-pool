@@ -84,6 +84,12 @@
   --sidebar-ring: oklch(0.708 0 0);
   --brand: #00a94f;
   --brand-foreground: #1c1c1c;
+  /* Points race chart: highlighted teams take these slots in order; the rest are context lines. */
+  --race-1: #2a78d6;
+  --race-2: #eb6834;
+  --race-3: #1baf7a;
+  --race-4: #4a3aa7;
+  --race-context: #c3c2b7;
 }
 
 .dark {
@@ -120,6 +126,11 @@
   --sidebar-ring: oklch(0.556 0 0);
   --brand: #00c25a;
   --brand-foreground: #0d1f15;
+  --race-1: #3987e5;
+  --race-2: #d95926;
+  --race-3: #199e70;
+  --race-4: #9085e9;
+  --race-context: #4a4a47;
 }
 
 @layer base {

@@ -4,6 +4,7 @@ import { LandingHero } from "@/components/landing/landing-hero";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getPoolPickCounts } from "@/lib/pick-counts";
+import { getPointsRace } from "@/lib/points-race";
 
 type Props = {
   searchParams: Promise<{ view?: string; compare?: string }>;
@@ -103,11 +104,15 @@ export default async function Home({ searchParams }: Props) {
   const { view: requestedView, compare } = await searchParams;
   const poolLocked = pools[0]?.locked ?? false;
   // Other views reveal everyone's picks, so they only open up once the pool is locked.
-  const view = poolLocked && requestedView === "pick-counts" ? "pick-counts" : "standings";
+  const view =
+    poolLocked && (requestedView === "pick-counts" || requestedView === "points-race")
+      ? requestedView
+      : "standings";
   const pickCounts =
     pool && view === "pick-counts"
       ? await getPoolPickCounts(pool.id, { includePickers: false })
       : null;
+  const pointsRace = pool && view === "points-race" ? await getPointsRace(pool.id) : null;
 
   const myEntrantId = pool?.entrants[0]?.id ?? null;
   // Only teams in this pool can be compared against, and never yourself.
@@ -150,6 +155,8 @@ export default async function Home({ searchParams }: Props) {
         view={view}
         pickCounts={pickCounts}
         pickComparison={pickComparison}
+        pointsRace={pointsRace}
+        myEntrantId={myEntrantId}
       />
     </section>
   );

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PickCounts, type PickComparison } from "@/components/pool/pick-counts";
+import { PointsRace } from "@/components/pool/points-race";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -10,13 +11,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { PoolPickCounts } from "@/lib/pick-counts";
+import type { PointsRace as PointsRaceData } from "@/lib/points-race";
 import { cn } from "@/lib/utils";
 
-export type DashboardView = "standings" | "pick-counts";
+export type DashboardView = "standings" | "pick-counts" | "points-race";
 
 const VIEWS: Array<{ key: DashboardView; label: string; description: string }> = [
   { key: "standings", label: "Standings", description: "Every team, ranked by points" },
   { key: "pick-counts", label: "Box breakdown", description: "Picks and points for every player" },
+  { key: "points-race", label: "Points race", description: "Every team's points, day by day" },
 ];
 
 type PoolSummary = {
@@ -48,6 +51,8 @@ type Props = {
   view: DashboardView;
   pickCounts: PoolPickCounts | null;
   pickComparison: PickComparison | null;
+  pointsRace: PointsRaceData | null;
+  myEntrantId: string | null;
 };
 
 export function DashboardOverview({
@@ -58,6 +63,8 @@ export function DashboardOverview({
   view,
   pickCounts,
   pickComparison,
+  pointsRace,
+  myEntrantId,
 }: Props) {
   const currentPool = pools[0] ?? null;
   const joined = currentPool ? currentPool.joined : false;
@@ -104,7 +111,7 @@ export function DashboardOverview({
       </Card>
 
       {locked ? (
-        <nav aria-label="Dashboard views" className="grid gap-3 sm:grid-cols-2">
+        <nav aria-label="Dashboard views" className="grid gap-3 sm:grid-cols-3">
           {VIEWS.map((option) => {
             const active = option.key === view;
             return (
@@ -194,6 +201,8 @@ export function DashboardOverview({
 
       {view === "pick-counts" && pickCounts ? (
         <PickCounts data={pickCounts} showPickers={false} comparison={pickComparison} />
+      ) : view === "points-race" && pointsRace ? (
+        <PointsRace data={pointsRace} myEntrantId={myEntrantId} />
       ) : (
         <Card className="border-brand/20 bg-card">
           <CardHeader>
